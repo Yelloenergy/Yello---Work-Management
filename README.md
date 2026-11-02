@@ -30,9 +30,9 @@ Navigation, deep links, keyboard-accessible tabs and a mobile menu are functiona
 
 ## Sales Management review flow
 
-The front register is 20 rows high with vertical scrolling, a frozen client column, sticky headings and synchronised top/bottom horizontal scrollbars. Twenty-five explicitly labelled blank layout slots let you test scrolling and opening an order without fabricated customer records. Switch to the empty register with **Show Empty Register**.
+The front register is 20 rows high with vertical scrolling, a frozen client column, sticky headings and synchronised top/bottom horizontal scrollbars. Twenty-five explicitly labelled fictional sample orders let you test Client Name / Sale ID search, scrolling and opening matching full details. Rows are 34px high. Switch to the empty register with **Show Empty Register**.
 
-Open a layout slot for the Client Profile section layout and separate post-submission notes. Return to the register without losing the preview search or scroll position. Phone/Email controls show that no contact data is connected. Preview notes stay only in the current tab's memory and disappear on reload; these are not business events or a durable audit trail.
+Open a layout slot for the Client Profile section layout and separate post-submission notes. Return to the register without losing the client/order search or scroll position. Phone/Email/SMS/WhatsApp shortcuts show masked sample contact details without starting communications. Preview notes stay only in the current tab's memory and disappear on reload; these are not business events or a durable audit trail.
 
 See `docs/SALES-FIELD-MAPPING.md` for observed source labels and remaining integration work. The full order layout is a review subset, not the complete production Client Profile payload.
 
