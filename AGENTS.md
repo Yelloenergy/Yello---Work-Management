@@ -26,7 +26,35 @@ Keep the following order and labels. Item 2 in the owner's list was a rule, not 
 - Further modules can be added later at the owner's direction.
 - The owner also approved central Dashboards, Reports and Activity Logs. Show these as shared workspaces, separate from the numbered nine-stage job journey. Detailed metrics, reporting and activity-event rules remain pending.
 
-## Sales CRM reference reviewed
+## Sales Management — agreed order views
+
+- The owner approved exactly two order views: a compact front register with basic information, and a full order view opened from the register. Do not add an expanded wide-table view.
+- Reuse the Sales CRM Client Profile's approved field names and structure for the full order view, populated from the same approved Sales Order and its associated client/site information. Verify the actual source structure before implementation; do not recreate it from memory.
+- Preserve the source order identity and approved version. Do not substitute a client's latest profile values for historical signed-order values or merge multiple orders belonging to the same client.
+- The owner requested the front register in this order: Name; System Type; Site Type; Sales Rep; PV Size; Battery Size if given; Phase; Roof Site Notes; Last Notes; Sales Date; last Update. Preserve this requested information and order while verifying the exact source labels before implementation.
+- Also provide the compact phone/email-style controls used in Sales CRM. Do not introduce duplicate contact data or invent communication events when controls are used.
+- Source inspection of Sales CRM Client Profile found `Client Name`, `System Type`, `Site Type`, `System Size`, `Battery Size`, `Phase Type`, `Roof Type`, `Site Visit Notes` / `Remote Visit Notes`, `Contact 1` and `Email 1`. These are observed source labels, not permission to rename them. The master workbook still needs verification.
+- Exact mappings for Sales Rep, Last Notes, Sales Date and last Update remain to be verified. Do not equate Sales Date with Signed Contract Date or last Update with Last Activity without agreement on their meanings.
+- The owner clarified that site installation notes and the latest notes about changes after submission are two separate kinds of information. Keep both distinct; retain the original approved order and the history of subsequent updates. The earlier clarification question about `Roof Site Notes` is resolved by this distinction; do not infer an extra Roof Type column from that phrase.
+- The owner subsequently authorised creating a genuinely missing field without a separate naming approval: their spoken column names describe the intended information, not replacement labels. First check Sales CRM for an equivalent by meaning and reuse its exact canonical name. Only create a new field when no equivalent exists, record why it is new and how it maps into the order workflow, and avoid duplicate fields. This supersedes earlier requirements to seek approval for each missing field within the agreed Sales Management scope.
+- This decision approves the view approach. Live data integration, field selection and implementation details remain pending.
+- The owner authorised building the register/full-order flow with a 20-row-high scroll area. The implemented review has 25 explicitly labelled blank layout slots for scroll/open testing and an empty-register toggle; none are business records. Keep preview notes memory-only and separate from live activity.
+- Field decisions and remaining source verification are documented in `docs/SALES-FIELD-MAPPING.md`. The current full-order layout is a review subset; do not describe it as a complete live Client Profile integration.
+
+## Inventory Control — rules of engagement
+
+- The owner requests brainstorming a complete Inventory system first. Do not implement Inventory workflows or add fields before the discussion and approval.
+- Strictly preserve Sales CRM column and field names exactly, including spelling, case and meaning. Do not introduce renamed aliases, replacement labels, duplicated names for the same data, or silently corrected names in Work Management.
+- Read and verify the current Sales CRM source fields before proposing Inventory fields. The Sales CRM instructions identify `Yello Sales CRM-Final/SALES CRM - Building/Sales CRM V1 - Master File.xlsm`, especially `Final Draft`, as the canonical field/column reference. Its current contents have not yet been reviewed for this Inventory discussion.
+- If a field is needed and no approved Sales CRM equivalent exists, the owner permits a genuinely new field after checking the source. Record the gap and new field explicitly; never guess a source label or invent a second name for an existing field. This does not authorise unrequested Inventory workflows or expansion beyond the agreed scope.
+- The Sales Order is the intended source for prefilling most Inventory locations. Data flow and field mapping are critical requirements. No live integration is implemented yet.
+- Keep each transferred value traceable to its exact Sales CRM field, source record and approved order version. Reuse existing source identifiers; do not match orders by customer name alone or re-key shared data.
+- Sales CRM already records that the signed-contract Product Information is the order payload. Preserve its exact products, specifications, model numbers, quantities and repeated product lines. Do not replace a signed order snapshot with current catalogue values.
+- Verify controlled product/SKU mappings before stock allocation or purchasing. Missing, conflicting or ambiguous identifiers must prevent automated purchasing decisions and be flagged for resolution.
+- Preserve the Sales CRM's controlled corrections process for submitted orders. Do not silently overwrite order changes in Inventory; reconcile the approved version and retain history.
+- Inventory movements, allocations, receipts, dispatch and purchasing rules remain to be brainstormed and approved; do not claim they are already connected or enforced.
+
+## Sales CRM design reference
 
 Source workspace: `C:/Users/vick/.codex/.chatgpt-projects/g-p-6aae4bf856c48191a530aec21a13ddfb`.
 Reviewed `AGENTS.md` (Product and UX rules), `app/app/formatting-standard/page.tsx`, and `app/components/crm-sidebar-nav.tsx`.

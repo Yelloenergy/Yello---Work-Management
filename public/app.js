@@ -1,3 +1,5 @@
+import { mountSales } from './sales.js';
+
 export const sections = [
   { id: 'sales-management', title: 'Sales Management', short: 'Sales', icon: 'sales', description: 'Your starting point for sales approved by the Sales Manager and AI.', label: 'APPROVED SALES', headline: 'Ready for the Next Step.', detail: 'Sales arrive here after approval. Your team can then move them through the work management journey.', area: 'Approved Sales', empty: 'No Approved Sales Yet', emptyDetail: 'Approved sales will appear here when the Sales CRM handover is connected.', noteTitle: 'Sales Already Approved', note: 'Sales checking and approval stay with the Sales Manager and AI. There is no second sales approval in this workspace.' },
   { id: 'grid-management', title: 'Grid Management', short: 'Grid', icon: 'grid', description: 'Keep grid applications and net meter applications in one place.', tabs: [
@@ -50,6 +52,9 @@ function routeFromHash() {
   return { section, tab };
 }
 function render() {
+  document.querySelector('main').classList.remove('sales-page');
+  document.querySelector('#module-panel')._salesCleanup?.();
+  document.querySelector('#module-panel')._salesCleanup=null;
   const { section, tab } = routeFromHash();
   const index = sections.indexOf(section);
   const isCentral = index < 0;
@@ -76,6 +81,7 @@ function render() {
   const nextLink = document.querySelector('#next-section');
   nextLink.hidden = !next;
   if (next) { nextLink.href = `#${next.id}`; nextLink.innerHTML = `${next.title} <span aria-hidden="true">→</span>`; }
+  if(section.id==='sales-management') mountSales(panel,location.hash.slice(1).split('/')[1]);
 }
 
 if (typeof document !== 'undefined') {

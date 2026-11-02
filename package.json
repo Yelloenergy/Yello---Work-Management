@@ -7,7 +7,7 @@
   "scripts": {
     "dev": "node scripts/serve.mjs",
     "start": "node scripts/serve.mjs",
-    "check": "node --check public/app.js && node --check scripts/serve.mjs && node scripts/check-shell.mjs"
+    "check": "node --check public/app.js && node --check public/sales.js && node --check scripts/serve.mjs && node scripts/check-shell.mjs"
   },
   "engines": { "node": ">=22" }
 }

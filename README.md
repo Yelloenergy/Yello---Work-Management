@@ -28,6 +28,14 @@ Central shared workspaces: **Dashboards**, **Reports**, **Activity Logs**. These
 
 Navigation, deep links, keyboard-accessible tabs and a mobile menu are functional. Empty states deliberately contain no invented records or totals. The journey indicates the selected workspace; it does not imply completed stages or enforce workflow gates.
 
+## Sales Management review flow
+
+The front register is 20 rows high with vertical scrolling, a frozen client column, sticky headings and synchronised top/bottom horizontal scrollbars. Twenty-five explicitly labelled blank layout slots let you test scrolling and opening an order without fabricated customer records. Switch to the empty register with **Show Empty Register**.
+
+Open a layout slot for the Client Profile section layout and separate post-submission notes. Return to the register without losing the preview search or scroll position. Phone/Email controls show that no contact data is connected. Preview notes stay only in the current tab's memory and disappear on reload; these are not business events or a durable audit trail.
+
+See `docs/SALES-FIELD-MAPPING.md` for observed source labels and remaining integration work. The full order layout is a review subset, not the complete production Client Profile payload.
+
 ## Visual system
 
 Deep Plum `#291D38`, Petrol `#102F36`, Teal `#087B83`, light neutral content surfaces, Bahnschrift with Segoe UI and Arial fallbacks. Typography and component geometry follow the Sales CRM reference recorded in AGENTS.md.
