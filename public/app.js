@@ -1,3 +1,4 @@
+import {mountCrossover as mountJobCrossover} from './crossover.js';
 import { mountGrid,mountGridActivity } from './grid.js';
 import { mountManagement } from './management.js';
 
@@ -44,14 +45,6 @@ const paths = {
   close: '<path d="M4 8h16v13H4zM3 3h18v5H3zM9 13l2 2 4-4"/>'
 };
 function icon(name, className = '') { return `<svg class="icon ${className}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${paths[name]}</svg>`; }
-function mountCrossover(panel) {
-  const checks = [
-    ['Grid', 'Grid Approval', 'Approval reference and completion time, followed by checker, decision and approval time.'],
-    ['STC', 'Completed by Admin', 'Confirm completion in Bridgeselect: platform, creator and completion time, followed by checker, decision and approval time.'],
-    ['Inventory', 'Ready for Installation', 'Confirm ordered, reserved and prepared information from Inventory, followed by readiness evidence, checker, decision and approval time.']
-  ];
-  panel.innerHTML = `<div class="module-banner"><div><span class="banner-label">CHECK, APPROVE & RELEASE</span><h2>Ready Before Allocation.</h2><p>Confirm the work completed by each team. Every required check must pass before Projects can allocate or book installation.</p></div></div><div class="crossover-checks">${checks.map(([name,title,detail])=>`<article class="crossover-card"><span class="not-connected">Awaiting Source</span><h2>${name}</h2><h3>${title}</h3><p>${detail}</p><strong>Not checked or approved</strong></article>`).join('')}</div><div class="crossover-release"><div><h2>Release to Projects</h2><p>All three checks must be completed and approved for the same job and current version. Missing evidence, a pending decision or a rejected check keeps the job blocked.</p></div><button class="sales-button" disabled>Allocation Locked</button></div><div class="empty-state"><h3>No Jobs Connected Yet</h3><p>Completion evidence will come from the responsible teams. Source records and approval permissions must be connected before release is enabled.</p></div>`;
-}
 function routeFromHash() {
   let [sectionId, tabId] = location.hash.slice(1).split('/');
   if (['stc-management','inventory-management','offload-job'].includes(sectionId)) { location.replace('#job-crossover-check'); sectionId='job-crossover-check'; }
@@ -60,7 +53,7 @@ function routeFromHash() {
   return { section, tab };
 }
 function render() {
-  document.querySelector('main').classList.remove('sales-page','grid-page','management-page');
+  document.querySelector('main').classList.remove('sales-page','grid-page','management-page','crossover-page');
   document.querySelector('#module-panel')._gridCleanup?.();
   document.querySelector('#module-panel')._gridCleanup=null;
   document.querySelector('#module-panel')._gridAbort?.abort();
@@ -94,8 +87,10 @@ function render() {
   if (next) { nextLink.href = `#${next.id}`; nextLink.innerHTML = `${next.title} <span aria-hidden="true">→</span>`; }
   // Invalidate any pending management response when navigation changes.
   delete panel.dataset.managementMount;
-  if(section.id==='job-crossover-check') mountCrossover(panel);
-  if(section.id==='job-management') panel.insertAdjacentHTML('afterbegin','<p class="crossover-lock" role="status">Allocation and booking locked · A job must pass all three crossover checks first. No released jobs are connected.</p>');
+  delete panel.dataset.gridMount;
+  delete panel.dataset.crossoverMount;
+  if(section.id==='job-crossover-check') mountJobCrossover(panel,location.hash.slice(1));
+  if(section.id==='job-management') panel.insertAdjacentHTML('afterbegin','<p class="crossover-lock" role="status">Crossover approval required · Only released jobs are eligible for allocation. Team assignment and booking are not connected yet.</p>');
   if(section.id==='sales-management') mountManagement(panel,location.hash.slice(1));
   if(section.id==='grid-management') mountGrid(panel,location.hash.slice(1));
   if(section.id==='activity-logs') mountGridActivity(panel);

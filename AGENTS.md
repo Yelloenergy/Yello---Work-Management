@@ -18,6 +18,17 @@
 - After release, Projects aligns jobs with electricians and technicians (and the existing roofing team) for installation allocation and booking. Keep the existing team booking tab together.
 - The shell now shows three source-check cards and locked release/booking empty states. No source completion or approval is fabricated. Production gates must be enforced by the shared backend when allocation/booking workflows are built; disabled controls alone are insufficient.
 
+### Detailed crossover review — later 9 November 2026
+
+- The owner approved developing the proposed register/detail flow after describing the handover evidence. This supersedes the three static cards with a signed-order register and Order Details, Grid, STC, Inventory, Extras and Activity Log tabs.
+- Six checks are Client Order Checked, Product Changes reconciled (with separate Yes/No), Grid Approved, STC Created, Inventory Ready and Extras Aligned. The client-order check is an operational handover review, not repeat sales approval.
+- Record responsible people, completion evidence, completion times and Admin verification actor/time. STC/Inventory/Extras deadlines are not agreed; optional due times must not become invented defaults. The wider extras list will be supplied later.
+- The sample backend now validates evidence and verification stamps against the current approved contract. Relevant changes withdraw release and invalidate affected checks. Notes alone do not invalidate checks. Production booking/allocation remains unconnected and must enforce the same gate server-side when implemented.
+- Inventory ordered is not ready. Reserved/Prepared are provisional review statuses, not final source-system mappings. Admin attests exact product/specification/quantity matches; automated SKU/stock reconciliation remains pending. Packing slips use confirmed packed quantities, require Prepared status and are marked superseded after relevant changes.
+- Grid details now share the local client API with crossover; uploaded Grid file contents remain browser-local. Admin evidence for STC and Inventory is review-only until source integrations exist. Do not claim automatic external checks.
+- All-green release queues one client readiness interaction for a release snapshot. It does not send a message; external delivery is pending. Cancel unsent readiness interactions if the release becomes invalid.
+- Implementation and field provenance are documented in `docs/JOB-CROSSOVER.md`.
+
 Keep the following order and labels. Item 2 in the owner's list was a rule, not a separate module.
 
 1. Sales Management: incoming sales have already been checked and approved by the Sales Manager and AI. Do not add another sales-check or sales-approval step here.

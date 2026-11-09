@@ -26,13 +26,13 @@ Central shared workspaces: **Dashboards**, **Reports**, **Activity Logs**. These
 6. Payment Management — STC Payment / OFP Payments.
 7. Close Job — final handover and documents.
 
-Standalone STC and Inventory sections are removed. Old STC, Inventory and Offload links redirect to Job Crossover Check. The new page is a readiness shell: source evidence and authorised approvals are not connected, so allocation remains locked. Exact Inventory-ready criteria and source integrations must be agreed before backend release and booking gates are implemented.
+Standalone STC and Inventory sections are removed. Old STC, Inventory and Offload links redirect to Job Crossover Check. It now has a signed-order register, six detail tabs, evidence and checks, a backend release gate and sample packing slips. See `docs/JOB-CROSSOVER.md` for ownership, timing, version invalidation and queued client interactions. Exact Inventory-ready criteria and source integrations remain pending; production allocation/booking is not connected.
 
 Navigation, deep links, keyboard-accessible tabs and a mobile menu are functional. Empty states deliberately contain no invented records or totals. The journey indicates the selected workspace; it does not imply completed stages or enforce workflow gates.
 
 ## Grid & Meter review
 
-Open `/#grid-management` for the searchable provider/status register. Open a client for Grid Approval, Net Meter Application and Payment Done. Edits and attachment metadata persist to the browser sample store; uploaded files are retained in IndexedDB. Alerts refresh while the page is open. The 10-day grid target uses Sydney calendar days; the meter target uses 48 elapsed hours after confirmed payment proof, with escalation at 72 hours. These are the first-build assumptions awaiting the owner's combined review.
+Open `/#grid-management` for the searchable provider/status register. Open a client for Grid Approval, Net Meter Application and Payment Done. Details and attachment metadata now persist to the shared local client API; uploaded file contents remain in browser IndexedDB. Alerts refresh while the page is open. The 10-day grid target uses Sydney calendar days; the meter target uses 48 elapsed hours after confirmed payment proof, with escalation at 72 hours. These are the first-build assumptions awaiting the owner's combined review.
 
 ## Management Sales Record
 
@@ -58,5 +58,6 @@ node --check scripts/serve.mjs
 node scripts/check-shell.mjs
 node scripts/check-grid.mjs
 node scripts/check-management.mjs
+node scripts/check-crossover.mjs
 node scripts/check-client-api.mjs
 ```

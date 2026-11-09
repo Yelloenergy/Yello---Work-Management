@@ -1,5 +1,7 @@
 # Grid & Meter first build
 
+Later crossover update: Grid field values, file metadata and Grid history now save through the shared local client API (`gridReview`) so Job Crossover Check reads the same approval evidence. File contents remain in browser IndexedDB. Browser-only storage descriptions below document the first build. External provider connections remain unimplemented.
+
 Reference: Google Drive Excel file `1nHqRp0jJarl93zh3h6Prrkk0YT5jbhzW`, read only on 9 November 2026. Its customer records and protected file links are not imported, committed or published.
 
 Observed source labels: `Grid Status`, `Sales Prospect Details`, `Grid Applied Date`, `Approval Number`, `Approval Date`, `Meter Applied`, `Meter Date + Time`, `Meter Ins Date`, `Files` / `Grid + Meter File`, `Email`, `Creation Log`, `Year`, `link to Client Projectline`, `Grid Provider`.

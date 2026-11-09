@@ -1,4 +1,5 @@
 import { randomUUID } from 'node:crypto';
+import {updateCrossover,reconcileRelease} from './crossover-model.mjs';
 import { sampleOrders } from '../public/sample-orders.js';
 export const PAGES=['Client Details','Project Details','Grid Details','Documents','Products','Price','Outcome','Activity Log'];
 export const DOCUMENT_LABELS=['Electricity Bill','Meter Pic','Site Legend','PV Design','Battery Location','Build Plan','Interval Data','Signed Contract','Single Line Diagram (SLD)','Voltage Rise Calculation (VRC)','Identification','Strata Approval','Landlord Approval','Other'];
@@ -44,11 +45,13 @@ export function project(record,context){
   if(!canAccess(record,context))return null;
   const result=structuredClone(record);delete result.draftContract;
   if(context.role!=='management')result.changes=result.changes.filter(c=>c.status==='Approved');
+  if(context.role!=='management'){delete result.crossover;delete result.gridReview;}
   // No direct cost, GP, stock count or internal approval-rule fields are exposed.
   return result;
 }
 export function updateClient(record,body,context){
   if(!canAccess(record,context))throw Error('Access denied.');
+  if(body.action==='save-grid-review'||body.action?.startsWith('crossover-'))return updateCrossover(structuredClone(record),body,context,event);
   if(body.revision!==record.revision)throw Error('This record changed. Refresh it before saving.');
   const draft=structuredClone(record),action=body.action;
   if(action==='save-profile'){
@@ -95,5 +98,6 @@ export function updateClient(record,body,context){
     Object.assign(change,{status:body.decision,decidedBy:context.actor,decidedAt:new Date().toISOString()});
     event(draft,context,'Approvals',`${body.decision}: ${change.field}. ${body.decision==='Approved'?'New controlled version created.':'Signed values unchanged.'}`);
   }else throw Error('Unsupported action.');
+  reconcileRelease(draft,context,event);
   return draft;
 }

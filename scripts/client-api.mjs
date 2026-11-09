@@ -3,6 +3,8 @@ import {randomUUID} from 'node:crypto';
 import {createClients,project,updateClient,canAccess,event,DOCUMENT_LABELS} from './client-model.mjs';
 import {fileURLToPath} from 'node:url';
 import path from 'node:path';
+import {createGridSamples} from '../public/grid-data.js';
+import {reconcileRelease} from './crossover-model.mjs';
 const directory=process.env.WORK_CRM_REVIEW_DATA_DIR||fileURLToPath(new URL('../output/client-review/',import.meta.url));
 const statePath=path.join(directory,'clients.json');
 // Local review identity is configured by the server, never by a browser field.
@@ -18,6 +20,11 @@ try{records=JSON.parse(await readFile(statePath,'utf8'));}catch{
   await writeFile(statePath,JSON.stringify(records));
 }
 async function persist(next){const temp=statePath+'.tmp';await writeFile(temp,JSON.stringify(next));await rename(temp,statePath);records=next;}
+const gridSeeds=createGridSamples();
+if(records.some(r=>!r.gridReview)){
+  for(const r of records)if(!r.gridReview)r.gridReview=gridSeeds.find(g=>g.id===r.id);
+  await persist(records);
+}
 function json(response,status,value){response.writeHead(status,{'Content-Type':'application/json; charset=utf-8','Cache-Control':'no-store','X-Content-Type-Options':'nosniff'});response.end(JSON.stringify(value));}
 async function readBody(request){let result='',length=0;for await(const chunk of request){length+=chunk.length;if(length>12*1024*1024)throw Error('Request too large. Limit files to 8 MB.');result+=chunk;}return JSON.parse(result||'{}');}
 export async function handleClients(request,response,url){
@@ -53,6 +60,7 @@ export async function handleClients(request,response,url){
         updated=structuredClone(current);updated.documents.push({id:fileId,label:body.label,name,type,bytes:bytes.length,at:new Date().toISOString()});
         event(updated,context,'Document',`${body.label} attached: ${name}.`);
       }else updated=updateClient(current,body,context);
+      reconcileRelease(updated,context,event);
       await persist(records.map(r=>r.id===id?updated:r));return updated;
     });
     queue=job.catch(()=>{});const updated=await job;json(response,200,{record:project(updated,view)});
