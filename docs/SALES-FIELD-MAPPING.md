@@ -1,5 +1,7 @@
 # Sales Management field mapping
 
+This documents the early order-register review. The active Management Sales Record now follows `MANAGEMENT-SALES-RECORD.md`, with Preferred Name and the eight approved record pages. Historical mappings below are retained for reference, not as competing field definitions.
+
 The register and order layout use observed Sales CRM source labels. Source inspected: the Sales CRM `app/app/client-profile/page.tsx` and `app/app/rep-leads/page.tsx`. The master workbook and production order payload still require reconciliation before importing live records.
 
 | Requested information | Visible label | Mapping decision |

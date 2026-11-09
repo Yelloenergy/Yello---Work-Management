@@ -2,6 +2,8 @@
 
 Local, navigable shell for the post-approval job journey. Prepared on 2 November 2026.
 
+Updated 9 November 2026 with Grid & Meter review workflows and a Management Sales Record backed by a shared local sample API.
+
 ## Run
 
 Node.js 22 or later; no package installation is required.
@@ -28,13 +30,17 @@ Central shared workspaces: **Dashboards**, **Reports**, **Activity Logs**. These
 
 Navigation, deep links, keyboard-accessible tabs and a mobile menu are functional. Empty states deliberately contain no invented records or totals. The journey indicates the selected workspace; it does not imply completed stages or enforce workflow gates.
 
-## Sales Management review flow
+## Grid & Meter review
 
-The front register is 20 rows high with vertical scrolling, a frozen client column, sticky headings and synchronised top/bottom horizontal scrollbars. Twenty-five explicitly labelled fictional sample orders let you test Client Name / Sale ID search, scrolling and opening matching full details. Rows are 34px high. Switch to the empty register with **Show Empty Register**.
+Open `/#grid-management` for the searchable provider/status register. Open a client for Grid Approval, Net Meter Application and Payment Done. Edits and attachment metadata persist to the browser sample store; uploaded files are retained in IndexedDB. Alerts refresh while the page is open. The 10-day grid target uses Sydney calendar days; the meter target uses 48 elapsed hours after confirmed payment proof, with escalation at 72 hours. These are the first-build assumptions awaiting the owner's combined review.
 
-Open a layout slot for the Client Profile section layout and separate post-submission notes. Return to the register without losing the client/order search or scroll position. Phone/Email/SMS/WhatsApp shortcuts show masked sample contact details without starting communications. Preview notes stay only in the current tab's memory and disappear on reload; these are not business events or a durable audit trail.
+## Management Sales Record
 
-See `docs/SALES-FIELD-MAPPING.md` for observed source labels and remaining integration work. The full order layout is a review subset, not the complete production Client Profile payload.
+Open `/#sales-management`. The eight record pages are Client Details, Project Details, Grid Details, Documents, Products, Price, Outcome and Activity Log. The register supports name/phone/address/suburb search, status and won-year filters and 20 records per page. Clients are seeded from sample leads and cannot be created from this page.
+
+The server stores shared sample clients, immutable signed originals, approved versions, decision events and document bytes under ignored `output/client-review/`. Both `/api/clients` and the scoped read-only `/api/rep-clients` projection read those same records. Direct product/price writes, out-of-scope rep reads, stale revisions and edits to existing activity entries are rejected. A document is Uploaded only after its bytes and metadata save successfully.
+
+The server's review context is configured with `WORK_CRM_REVIEW_ROLE`, `WORK_CRM_REVIEW_REP` and `WORK_CRM_REVIEW_ACTOR`; browser payloads cannot choose a role. This adapter is **not production authentication**. Production sign-in, the real Sales CRM shared database, live stock and external provider submissions/notifications remain unconnected. Never put real client data into the public repository or use review-role configuration as a production login system.
 
 ## Visual system
 
@@ -42,7 +48,7 @@ Deep Plum `#291D38`, Petrol `#102F36`, Teal `#087B83`, light neutral content sur
 
 ## Scope
 
-This is a dependency-free HTML/CSS/JavaScript shell, not a choice of final production framework. No live data, authentication, role enforcement, approvals, AI checks, external applications, inventory, Purchase Order generation, bookings or payments are connected. Detailed fields, sources, permissions and workflow requirements will be agreed module by module.
+This is a dependency-free HTML/CSS/JavaScript review application with a local Node API, not the final production framework or live Sales CRM integration. The shared backend, review-role policy, controlled sample approval versions and file evidence are implemented for review. Production identity, external applications, live inventory, Purchase Order generation, bookings and payment processing remain unconnected. `public/sales.js` is the superseded early layout; the active Management register uses `public/management.js` and the shared API.
 
 ## Checks
 
@@ -50,4 +56,7 @@ This is a dependency-free HTML/CSS/JavaScript shell, not a choice of final produ
 node --check public/app.js
 node --check scripts/serve.mjs
 node scripts/check-shell.mjs
+node scripts/check-grid.mjs
+node scripts/check-management.mjs
+node scripts/check-client-api.mjs
 ```

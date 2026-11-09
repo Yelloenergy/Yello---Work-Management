@@ -7,7 +7,8 @@
   "scripts": {
     "dev": "node scripts/serve.mjs",
     "start": "node scripts/serve.mjs",
-    "check": "node --check public/app.js && node --check public/sales.js && node --check public/sample-orders.js && node --check scripts/serve.mjs && node scripts/check-shell.mjs"
+    "check": "node --check public/app.js && node --check public/sales.js && node --check public/sample-orders.js && node --check public/grid.js && node --check public/management.js && node --check scripts/serve.mjs && node scripts/check-shell.mjs && node scripts/check-grid.mjs && node scripts/check-management.mjs",
+    "check:api": "node scripts/check-client-api.mjs"
   },
   "engines": { "node": ">=22" }
 }

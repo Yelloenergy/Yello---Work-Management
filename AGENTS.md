@@ -44,6 +44,11 @@ Keep the following order and labels. Item 2 in the owner's list was a rule, not 
 - Search matches Client Name or Sale ID. Contact shortcuts expose the four channels but only show sample contact information while fictional fixtures are loaded; never initiate communication to invented contacts.
 - Field decisions and remaining source verification are documented in `docs/SALES-FIELD-MAPPING.md`. The current full-order layout is a review subset; do not describe it as a complete live Client Profile integration.
 
+## Next approved builds — 9 November 2026
+
+- Complete Grid & Meter first, using `docs/GRID-MANAGEMENT.md`. The owner asked to build first and review corrections together. Current timing assumptions are 10 Sydney calendar days, meter submission within 48h of confirmed payment proof, escalation at 72h.
+- Then implement the Management Sales Record specification in `docs/MANAGEMENT-SALES-RECORD.md`, preserving its exact page order, shared identity, document evidence, signed locks, controlled changes and read-only activity history. Keep the approved Work Management skin.
+
 ## Inventory Control — rules of engagement
 
 - The owner requests brainstorming a complete Inventory system first. Do not implement Inventory workflows or add fields before the discussion and approval.

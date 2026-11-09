@@ -2,12 +2,15 @@ import http from 'node:http';
 import { readFile } from 'node:fs/promises';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { handleClients } from './client-api.mjs';
 
 const root = fileURLToPath(new URL('../public/', import.meta.url));
 const port = Number(process.env.PORT || 3114);
 const types = { '.html': 'text/html; charset=utf-8', '.css': 'text/css; charset=utf-8', '.js': 'text/javascript; charset=utf-8' };
 const server = http.createServer(async (request, response) => {
   try {
+    const apiUrl=new URL(request.url,'http://localhost');
+    if(await handleClients(request,response,apiUrl))return;
     if (!['GET', 'HEAD'].includes(request.method)) { response.writeHead(405, { Allow: 'GET, HEAD' }); response.end(); return; }
     const url = new URL(request.url, 'http://localhost');
     const pathname = decodeURIComponent(url.pathname);

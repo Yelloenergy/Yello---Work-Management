@@ -1,4 +1,5 @@
-import { mountSales } from './sales.js';
+import { mountGrid,mountGridActivity } from './grid.js';
+import { mountManagement } from './management.js';
 
 export const sections = [
   { id: 'sales-management', title: 'Sales Management', short: 'Sales', icon: 'sales', description: 'Your starting point for sales approved by the Sales Manager and AI.', label: 'APPROVED SALES', headline: 'Ready for the Next Step.', detail: 'Sales arrive here after approval. Your team can then move them through the work management journey.', area: 'Approved Sales', empty: 'No Approved Sales Yet', emptyDetail: 'Approved sales will appear here when the Sales CRM handover is connected.', noteTitle: 'Sales Already Approved', note: 'Sales checking and approval stay with the Sales Manager and AI. There is no second sales approval in this workspace.' },
@@ -52,7 +53,10 @@ function routeFromHash() {
   return { section, tab };
 }
 function render() {
-  document.querySelector('main').classList.remove('sales-page');
+  document.querySelector('main').classList.remove('sales-page','grid-page','management-page');
+  document.querySelector('#module-panel')._gridCleanup?.();
+  document.querySelector('#module-panel')._gridCleanup=null;
+  document.querySelector('#module-panel')._gridAbort?.abort();
   document.querySelector('#module-panel')._salesCleanup?.();
   document.querySelector('#module-panel')._salesCleanup=null;
   const { section, tab } = routeFromHash();
@@ -81,7 +85,11 @@ function render() {
   const nextLink = document.querySelector('#next-section');
   nextLink.hidden = !next;
   if (next) { nextLink.href = `#${next.id}`; nextLink.innerHTML = `${next.title} <span aria-hidden="true">→</span>`; }
-  if(section.id==='sales-management') mountSales(panel,location.hash.slice(1).split('/')[1]);
+  // Invalidate any pending management response when navigation changes.
+  delete panel.dataset.managementMount;
+  if(section.id==='sales-management') mountManagement(panel,location.hash.slice(1));
+  if(section.id==='grid-management') mountGrid(panel,location.hash.slice(1));
+  if(section.id==='activity-logs') mountGridActivity(panel);
 }
 
 if (typeof document !== 'undefined') {

@@ -1,0 +1,61 @@
+import { mkdir,readFile,writeFile,rename } from 'node:fs/promises';
+import {randomUUID} from 'node:crypto';
+import {createClients,project,updateClient,canAccess,event,DOCUMENT_LABELS} from './client-model.mjs';
+import {fileURLToPath} from 'node:url';
+import path from 'node:path';
+const directory=process.env.WORK_CRM_REVIEW_DATA_DIR||fileURLToPath(new URL('../output/client-review/',import.meta.url));
+const statePath=path.join(directory,'clients.json');
+// Local review identity is configured by the server, never by a browser field.
+// Replace this adapter with authenticated Sales CRM identity before production.
+const role=process.env.WORK_CRM_REVIEW_ROLE||'management';
+const context={role,actor:process.env.WORK_CRM_REVIEW_ACTOR||(role==='rep'?'Local Rep Reviewer':'Local Management Reviewer'),rep:process.env.WORK_CRM_REVIEW_REP||'Jack'};
+let records;
+let queue=Promise.resolve();
+await mkdir(directory,{recursive:true});
+try{records=JSON.parse(await readFile(statePath,'utf8'));}catch{
+  records=createClients();
+  for(const record of records)if(record.contracts.length){const id=randomUUID();const content=Buffer.from(`FICTIONAL SIGNED CONTRACT EXAMPLE\n${record.fields['Sale ID']}\nFor layout review only. Not a real signed agreement.`);await writeFile(path.join(directory,id),content);record.documents.push({id,label:'Signed Contract',name:'Sample signed contract.txt',type:'text/plain',bytes:content.length,at:record.fields['Last Activity']});}
+  await writeFile(statePath,JSON.stringify(records));
+}
+async function persist(next){const temp=statePath+'.tmp';await writeFile(temp,JSON.stringify(next));await rename(temp,statePath);records=next;}
+function json(response,status,value){response.writeHead(status,{'Content-Type':'application/json; charset=utf-8','Cache-Control':'no-store','X-Content-Type-Options':'nosniff'});response.end(JSON.stringify(value));}
+async function readBody(request){let result='',length=0;for await(const chunk of request){length+=chunk.length;if(length>12*1024*1024)throw Error('Request too large. Limit files to 8 MB.');result+=chunk;}return JSON.parse(result||'{}');}
+export async function handleClients(request,response,url){
+  if(!url.pathname.startsWith('/api/'))return false;
+  try{
+    if(!['management','rep'].includes(context.role)){json(response,403,{error:'No authorised review role configured.'});return true;}
+    if(request.headers.origin&&request.headers.origin!==`http://${request.headers.host}`){json(response,403,{error:'Cross-origin requests are not allowed.'});return true;}
+    if(url.pathname==='/api/session'){json(response,200,{...context,mode:'Local sample review — production identity and Sales CRM connection pending'});return true;}
+    const match=url.pathname.match(/^\/api\/(clients|rep-clients)(?:\/([^/]+))?(?:\/documents(?:\/([^/]+))?)?$/);
+    if(!match){json(response,404,{error:'Not found.'});return true;}
+    const [,kind,id,docId]=match;
+    const view=kind==='rep-clients'?{...context,role:'rep'}:context;
+    if(!id){if(request.method!=='GET'){json(response,405,{error:'Client creation is only allowed through lead generation.'});return true;}json(response,200,{records:records.map(r=>project(r,view)).filter(Boolean)});return true;}
+    const record=records.find(r=>r.id===id);
+    if(!record||!canAccess(record,view)){json(response,404,{error:'Client not found or outside your permitted records.'});return true;}
+    if(request.method==='GET'){
+      if(docId){const document=record.documents.find(d=>d.id===docId);if(!document){json(response,404,{error:'File not found.'});return true;}const bytes=await readFile(path.join(directory,document.id));response.writeHead(200,{'Content-Type':document.type,'Content-Disposition':`inline; filename="${document.name.replace(/[^a-zA-Z0-9 ._-]/g,'_')}"`,'Content-Security-Policy':"sandbox; default-src 'none'",'Cache-Control':'no-store','X-Content-Type-Options':'nosniff'});response.end(bytes);return true;}
+      json(response,200,{record:project(record,view)});return true;
+    }
+    if(request.method!=='POST'||kind==='rep-clients'){json(response,405,{error:'This endpoint is read-only.'});return true;}
+    if(!request.headers['content-type']?.startsWith('application/json')){json(response,415,{error:'JSON is required.'});return true;}
+    const body=await readBody(request);
+    const job=queue.then(async()=>{
+      const current=records.find(r=>r.id===id);let updated;
+      if(url.pathname.endsWith('/documents')){
+        if(body.revision!==current.revision)throw Error('This record changed. Refresh before uploading.');
+        if(!DOCUMENT_LABELS.includes(body.label))throw Error('Choose an approved document label.');
+        if(typeof body.content!=='string'||!/^[A-Za-z0-9+/]*={0,2}$/.test(body.content))throw Error('Invalid file content.');
+        const bytes=Buffer.from(body.content,'base64');if(!bytes.length||bytes.length>8*1024*1024)throw Error('Choose a non-empty file up to 8 MB.');
+        const types={'.pdf':'application/pdf','.png':'image/png','.jpg':'image/jpeg','.jpeg':'image/jpeg','.txt':'text/plain'};
+        const name=String(body.name||'').slice(0,180),type=types[path.extname(name).toLowerCase()];if(!type)throw Error('Use PDF, PNG, JPG or TXT for this review.');
+        const fileId=randomUUID();await writeFile(path.join(directory,fileId),bytes);
+        updated=structuredClone(current);updated.documents.push({id:fileId,label:body.label,name,type,bytes:bytes.length,at:new Date().toISOString()});
+        event(updated,context,'Document',`${body.label} attached: ${name}.`);
+      }else updated=updateClient(current,body,context);
+      await persist(records.map(r=>r.id===id?updated:r));return updated;
+    });
+    queue=job.catch(()=>{});const updated=await job;json(response,200,{record:project(updated,view)});
+  }catch(error){json(response,400,{error:error.message});}
+  return true;
+}
