@@ -20,13 +20,13 @@ Central shared workspaces: **Dashboards**, **Reports**, **Activity Logs**. These
 
 1. Sales Management — sales already approved by the Sales Manager and AI.
 2. Grid Management — Apply Grid Application / Apply Net Meter.
-3. STC Management — copy-ready details for external STC forms; fields pending.
-4. Inventory Management — prefilled materials and Purchase Order preparation; format and source pending.
-5. Offload Job — final operational checks before the projects handoff.
-6. Job Management — Book Jobs with Client / Book Job with Electricians and Roofing Team.
-7. Project Completion — Partial Completion / Full Completion.
-8. Payment Management — STC Payment / OFP Payments.
-9. Close Job — final handover and documents.
+3. Job Crossover Check — confirm Grid approval, Admin's STC completion in Bridgeselect and Inventory readiness; all three require checks and approval before release to Projects.
+4. Job Management — allocate released jobs to installation teams; Book Jobs with Client / Book Job with Electricians and Roofing Team, including technicians.
+5. Project Completion — Partial Completion / Full Completion.
+6. Payment Management — STC Payment / OFP Payments.
+7. Close Job — final handover and documents.
+
+Standalone STC and Inventory sections are removed. Old STC, Inventory and Offload links redirect to Job Crossover Check. The new page is a readiness shell: source evidence and authorised approvals are not connected, so allocation remains locked. Exact Inventory-ready criteria and source integrations must be agreed before backend release and booking gates are implemented.
 
 Navigation, deep links, keyboard-accessible tabs and a mobile menu are functional. Empty states deliberately contain no invented records or totals. The journey indicates the selected workspace; it does not imply completed stages or enforce workflow gates.
 

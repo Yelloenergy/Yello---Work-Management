@@ -9,6 +9,15 @@
 
 ## Approved shell structure
 
+### Superseding crossover decision — 9 November 2026
+
+- Remove standalone STC Management and Inventory Management from Work CRM. Replace Offload Job with **Job Crossover Check**, after Grid Management and before Job Management. Earlier module descriptions below are historical where they conflict with this decision.
+- Admin completes STC work in Bridgeselect. Work CRM confirms completion, time, platform and creator, then records the checker, approval decision, approver and time. Do not rebuild the external STC workflow here.
+- Inventory remains owned by its source system. Show its ordered/reserved/prepared information and confirm readiness; exact qualifying Inventory statuses and source mappings remain to be agreed. Do not treat Ordered alone as installation-ready.
+- Grid, STC and Inventory must all be completed, checked and approved for the same job/current approved version before release to Projects. Missing evidence or pending/rejected approval blocks allocation and installation booking. Relevant changes must invalidate affected readiness and require rechecking.
+- After release, Projects aligns jobs with electricians and technicians (and the existing roofing team) for installation allocation and booking. Keep the existing team booking tab together.
+- The shell now shows three source-check cards and locked release/booking empty states. No source completion or approval is fabricated. Production gates must be enforced by the shared backend when allocation/booking workflows are built; disabled controls alone are insufficient.
+
 Keep the following order and labels. Item 2 in the owner's list was a rule, not a separate module.
 
 1. Sales Management: incoming sales have already been checked and approved by the Sales Manager and AI. Do not add another sales-check or sales-approval step here.
