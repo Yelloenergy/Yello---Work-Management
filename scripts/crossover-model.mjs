@@ -41,8 +41,8 @@ export function updateCrossover(record,body,context,event){
       c.release={...c.submission};c.status='Approved';delete c.confirmation;
       c.interactions||=[];
       const name=record.fields['Preferred Name'],sale=record.fields['Sale ID'];
-      for(const channel of ['Email','SMS'])if(!c.interactions.some(i=>i.stamp===stamp&&i.channel===channel&&i.status.startsWith('Queued'))){
-        c.interactions.push({id:randomUUID(),submissionId:c.submission.id,stamp,at,channel,recipient:record.fields[channel==='Email'?'Email 1':'Contact 1']||'',subject:channel==='Email'?'Your order is ready for booking':'',text:channel==='Email'?`Hi ${name},\n\nYour order ${sale} has passed our checks and is ready for booking. Our team will contact you to arrange your installation.\n\nThank you,\nYello Energy Group`:`Hi ${name}, your order ${sale} is ready for booking. Our team will contact you to arrange installation. Yello Energy Group.`,status:'Queued — delivery not connected'});
+      for(const channel of ['Email','SMS'])if(!c.interactions.some(i=>i.kind!=='submission-reminder'&&i.stamp===stamp&&i.channel===channel&&i.status.startsWith('Queued'))){
+        c.interactions.push({id:randomUUID(),kind:'booking-ready',submissionId:c.submission.id,stamp,at,channel,recipient:record.fields[channel==='Email'?'Email 1':'Contact 1']||'',subject:channel==='Email'?'Your order is ready for booking':'',text:channel==='Email'?`Hi ${name},\n\nYour order ${sale} has passed our checks and is ready for booking. Our team will contact you to arrange your installation.\n\nThank you,\nYello Energy Group`:`Hi ${name}, your order ${sale} is ready for booking. Our team will contact you to arrange installation. Yello Energy Group.`,status:'Queued — delivery not connected'});
       }
       event(record,context,'Job Crossover','Submission confirmed YES. Job released to Job Management. Draft Email and SMS queued; delivery is not connected.');
     }else if(body.action==='crossover-save'){
@@ -78,7 +78,7 @@ export function updateCrossover(record,body,context,event){
   }
   reconcileRelease(record,context,event);return record;
 }
-export function reconcileRelease(record,context,event){
+export function reconcileRelease(record,context,event,now=Date.now()){
   const c=record.crossover;if(!c)return;
   c.interactions||=[];
   if(c.confirmation&&(!ready(record)||c.confirmation.stamp!==releaseStamp(record)))delete c.confirmation;
@@ -89,4 +89,32 @@ export function reconcileRelease(record,context,event){
     c.status='Working On it';
     event(record,context,'Job Crossover','Release withdrawn. Seven current checks and a new YES-confirmed Submission are required before Job Management.');
   }
+  const waiting=ready(record)&&!submitted(record),window=c.readyWindow;
+  if(waiting&&(!window||window.closedAt||window.stamp!==releaseStamp(record))){
+    if(window&&!window.closedAt)closeReminderWindow(record,context,event,now,'Checked order changed');
+    const checkedAt=Math.max(...CHECKS.map(key=>Date.parse(c.reviews[key].at)));
+    const start=Number.isFinite(checkedAt)?Math.min(now,checkedAt):now;
+    c.readyWindow={id:randomUUID(),stamp:releaseStamp(record),readyAt:new Date(start).toISOString(),dueAt:new Date(start+24*3600000).toISOString()};
+    event(record,context,'Job Crossover','All checks green. Submit is available; the 24-hour client reminder timer has started.',new Date(now).toISOString());
+  }else if(window&&!window.closedAt&&(!waiting||window.stamp!==releaseStamp(record))){
+    closeReminderWindow(record,context,event,now,submitted(record)?'Submission confirmed':'Checks require review');
+  }
+}
+function closeReminderWindow(record,context,event,now,reason){
+  const c=record.crossover,window=c.readyWindow;if(!window||window.closedAt)return;
+  window.closedAt=new Date(now).toISOString();window.closedReason=reason;
+  c.readyWindowHistory||=[];c.readyWindowHistory.push(structuredClone(window));
+  for(const message of c.interactions)if(message.kind==='submission-reminder'&&message.windowId===window.id&&message.status.startsWith('Queued'))message.status='Cancelled — '+reason.toLowerCase();
+  event(record,context,'Job Crossover',`24-hour reminder stopped: ${reason}.`,new Date(now).toISOString());
+}
+export function processCrossoverReminders(record,context,event,now=Date.now()){
+  reconcileRelease(record,context,event,now);
+  const c=record.crossover,window=c?.readyWindow;
+  if(!window||window.closedAt||window.reminderQueuedAt||!ready(record)||submitted(record)||window.stamp!==releaseStamp(record)||now<Date.parse(window.dueAt))return;
+  const at=new Date(now).toISOString(),name=record.fields['Preferred Name'],sale=record.fields['Sale ID'];
+  for(const channel of ['Email','SMS']){
+    c.interactions.push({id:randomUUID(),kind:'submission-reminder',windowId:window.id,stamp:window.stamp,at,channel,recipient:record.fields[channel==='Email'?'Email 1':'Contact 1']||'',subject:channel==='Email'?'Update on your order':'',text:channel==='Email'?`Hi ${name},\n\nThe checks for your order ${sale} are complete. Your order is awaiting final submission before it can move to booking. Our team will update you once that step is complete.\n\nThank you,\nYello Energy Group`:`Hi ${name}, checks for order ${sale} are complete and it is awaiting final submission before booking. We will update you once complete. Yello Energy Group.`,status:'Queued — delivery not connected'});
+  }
+  window.reminderQueuedAt=at;
+  event(record,context,'Job Crossover','Unsubmitted for 24 hours after all checks turned green. Client Email and SMS reminder queued; delivery not connected.',at);
 }

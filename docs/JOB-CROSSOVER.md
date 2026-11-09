@@ -1,5 +1,15 @@
 # Job Crossover Check — local review
 
+## Latest register and reminder update
+
+Status is boxed next to Client / Sale ID, followed by the seven checks, Submission, Sales Date and Date Sent Submission. Sales Date is the existing canonical Sales Order field, not a renamed check timestamp. Date Sent Submission is the current confirmed handover timestamp (`crossover.submission.at`), not Email/SMS delivery time. Check timestamps remain inside. Submit is hidden until all checks pass; a completed submission keeps a disabled Submit label.
+
+All-green, unsubmitted orders start a persisted 24-elapsed-hour readiness window. At its deadline the server queues separate client Email/SMS reminders once for that window, stating the checks are complete and final submission is pending. This message must not claim the order is ready for booking. It is distinct from the booking-ready messages created only after Yes-confirmed Submission. Clicking No does not reset the deadline.
+
+Source changes close the window and cancel unsent reminders. Reapproval starts a fresh window. Confirmed Submission also closes the timer and cancels unsent reminders while preserving normal booking-ready messages. Window history, decisions and queued/cancelled messages remain traceable. A serialized local server worker checks once per minute, on startup and before API requests, with atomic persistence and no duplicate reminders after restart. It requires the server to run; after downtime it catches up at restart. External delivery is unconnected. A future delivery worker must revalidate the current readiness window and absence of Submission before sending.
+
+Tests cover just-before/exactly-at 24 hours, repeat worker runs, restart catch-up, cancellation, fresh windows, and coexistence of pending-submission reminders with confirmed booking-ready messages.
+
 Register visual refinement: check cells show aligned squares without secondary explanations. Header and body columns align; client-name links underline on hover/focus. The main progress bar counts approved checks across the currently filtered orders, and separately reports submitted jobs. Empty results show 0%; a fully checked filtered set shows 100% without bypassing confirmed Submission. Product change details remain inside the record.
 
 The operational handover check replaces standalone STC, Inventory and Offload workspaces. It does not repeat sales approval. Signed orders appear in a compact register with Client / Sale ID followed by Check Order, Check Grid, Check STC, Check Product, Check Inventory, Pricing Checked, Extras Checked, Submission, Date Checked and Status. Responsible Admin appears under the client identity; Product Changes Yes/No remains supporting information. Twenty records per page; long registers scroll.

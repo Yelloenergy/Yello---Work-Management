@@ -1,5 +1,6 @@
 import assert from 'node:assert/strict';
-import {createClients,updateClient} from './client-model.mjs';
+import {createClients,updateClient,event} from './client-model.mjs';
+import {processCrossoverReminders} from './crossover-model.mjs';
 import {CHECKS,ready,checkState,productLines,stampFor,submitted,workStatus,formatCheckedAt} from '../public/crossover-policy.js';
 const management={role:'management',actor:'Test Admin',rep:'Jack'};
 let r=createClients()[17]; // Signed Battery Only order; no unverified racking quantity.
@@ -29,9 +30,22 @@ assert.throws(()=>act('crossover-prepare-submission'),/seven/);
 assert.throws(()=>act('crossover-status',{status:'Approved'}),/confirmed Submission/);
 act('crossover-status',{status:'Need Help'});assert.equal(workStatus(r),'Need Help');
 act('crossover-check',{key:'pricing'});assert.ok(CHECKS.every(k=>checkState(r,k).green));assert.equal(r.crossover.release,undefined);assert.equal(r.crossover.interactions.length,0);
+const reminder=structuredClone(r),windowId=reminder.crossover.readyWindow.id,due=Date.parse(reminder.crossover.readyWindow.dueAt),system={role:'management',actor:'System reminder'};
+processCrossoverReminders(reminder,system,event,due-1);assert.equal(reminder.crossover.interactions.length,0);
+processCrossoverReminders(reminder,system,event,due);assert.equal(reminder.crossover.interactions.length,2);assert.ok(reminder.crossover.interactions.every(i=>i.kind==='submission-reminder'&&i.windowId===windowId));
+assert.match(reminder.crossover.interactions[0].text,/awaiting final submission/);
+processCrossoverReminders(reminder,system,event,due+3600000);assert.equal(reminder.crossover.interactions.length,2,'Reminder must queue once only');
+reminder.fields['Site Visit Notes']='Access changed';processCrossoverReminders(reminder,system,event,due+7200000);assert.ok(reminder.crossover.readyWindow.closedAt);assert.ok(reminder.crossover.interactions.every(i=>i.status.startsWith('Cancelled')));
+const rechecked=updateClient(reminder,{action:'crossover-check',key:'order',revision:reminder.revision},management);assert.notEqual(rechecked.crossover.readyWindow.id,windowId);assert.equal(rechecked.crossover.readyWindow.reminderQueuedAt,undefined);
+const queuedBeforeSubmit=structuredClone(r);processCrossoverReminders(queuedBeforeSubmit,system,event,due);
+let submitting=updateClient(queuedBeforeSubmit,{action:'crossover-prepare-submission',revision:queuedBeforeSubmit.revision},management);
+submitting=updateClient(submitting,{action:'crossover-submit',revision:submitting.revision,token:submitting.crossover.confirmation.token,confirmed:true},management);
+assert.ok(submitting.crossover.readyWindow.closedAt);assert.ok(submitting.crossover.interactions.filter(i=>i.kind==='submission-reminder').every(i=>i.status.startsWith('Cancelled')));
+processCrossoverReminders(submitting,system,event,due+10*3600000);assert.equal(submitting.crossover.interactions.length,4);
 assert.throws(()=>act('crossover-submit',{confirmed:true}),/Confirm/);
 act('crossover-prepare-submission');let token=r.crossover.confirmation.token;
-act('crossover-cancel-submission',{token});assert.equal(submitted(r),false);assert.equal(r.crossover.interactions.length,0);
+const originalDue=r.crossover.readyWindow.dueAt;
+act('crossover-cancel-submission',{token});assert.equal(submitted(r),false);assert.equal(r.crossover.interactions.length,0);assert.equal(r.crossover.readyWindow.dueAt,originalDue);
 assert.throws(()=>act('crossover-submit',{confirmed:true,token}),/Confirm/);
 act('crossover-prepare-submission');token=r.crossover.confirmation.token;
 assert.throws(()=>act('crossover-submit',{confirmed:false,token}),/Confirm/);
@@ -51,4 +65,4 @@ act('decide-change',{changeId:r.changes.at(-1).id,decision:'Approved'});assert.e
 assert.throws(()=>updateClient(r,{action:'crossover-check',key:'order',revision:r.revision},{role:'rep',rep:r.fields['Rep Name'],actor:'Rep'}),/Management permission/);
 assert.throws(()=>act('crossover-save',{key:'stc',evidence:{completedAt:'2099-01-01'}}),/past/);
 assert.equal(formatCheckedAt('2026-10-22T22:30:00Z'),'23 October 2026 9:30AM');
-console.log('Crossover checks passed: seven-check gate, pricing, explicit YES/NO, expired/stale confirmation, duplicate protection, two draft channels, date format, role scope, packing and source invalidation.');
+console.log('Crossover checks passed: seven-check and YES/NO gate, 24-hour boundary and deduplication, cancellation/reset, message channels, dates, role scope, packing and source invalidation.');

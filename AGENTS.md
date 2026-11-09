@@ -1,5 +1,14 @@
 # Work Management CRM
 
+## Latest crossover register and reminder rules — 10 November 2026
+
+- Place boxed operational Status immediately after Client / Sale ID. All four statuses (Awaiting, Working On it, Need Help, Approved) use consistent boxes. Checks remain left-aligned green/neutral squares.
+- Replace front Date Checked with canonical `Sales Date` from the same submitted Sales Order. Never substitute check time, Creation Date or this stage's submission time. Date Checked remains available inside for audit. Add `Date Sent Submission`, derived from the server-recorded current confirmed crossover Submission (`crossover.submission.at`), indicating handover to Job Management, not delivery of an Email/SMS.
+- Submit is hidden until every check is green. After confirmed submission it may remain visible and disabled with the label Submit; repeat submission is blocked. No handover occurs without the existing Yes confirmation.
+- Start a 24-elapsed-hour reminder window when all seven current checks are approved and the job remains unsubmitted. If still green and unsubmitted at the deadline, queue one client reminder per channel (Email and SMS) for that readiness window. The reminder says checks are complete but final submission is pending; do not claim booking is ready before Submission.
+- Submitting or invalidating any check closes the reminder window and cancels its unsent reminders. Reapproval starts a new window. Clicking No or repeatedly reviewing unchanged green checks must not reset the timer. Preserve window/message history and do not duplicate reminders after restart.
+- The local server checks deadlines every minute and catches up on startup/API access. External Email/SMS delivery remains unconnected: queued does not mean sent. Production delivery must revalidate readiness/submission immediately before sending and use an idempotent worker.
+
 ## Mandatory CRM-wide year and date standard — 10 November 2026
 
 - Crossover register refinement: show check squares alone in one aligned row, left-align check headings and squares at the same inset, and remove secondary `Changed: Yes/No` explanations from the front. Preserve accessible status names and hover evidence. Client names underline on hover/focus. Add one balanced main-register progress bar showing approved checks across filtered orders, with a separate submitted-job count; 100% checked does not imply Submission. Keep the action label Submit before and after confirmation; after confirmation it stays disabled to prevent repeat submission. Inside menus remain unchanged for the owner's next review.

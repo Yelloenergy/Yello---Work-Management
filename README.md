@@ -28,6 +28,8 @@ Central shared workspaces: **Dashboards**, **Reports**, **Activity Logs**. These
 
 Standalone STC and Inventory sections are removed. Old STC, Inventory and Offload links redirect to Job Crossover Check. It has a signed-order register with Year/Status tabs and name/location/phone search; eight detail tabs; seven evidence checks including pricing; packing slips; and a backend Submission gate. All-green enables Submit; only a subsequent Yes confirmation releases the job into Job Management and queues draft Email/SMS. See `docs/JOB-CROSSOVER.md`. External delivery, Inventory source integration and production booking remain unconnected.
 
+The register places boxed Status beside the client and shows source Sales Date separately from Date Sent Submission. Submit appears only after all checks pass. A persistent local worker queues one Email/SMS reminder after 24 hours of remaining fully checked but unsubmitted, cancels obsolete reminders and catches up after restart. No external message is sent until delivery services are connected.
+
 Navigation, deep links, keyboard-accessible tabs and a mobile menu are functional. Empty states deliberately contain no invented records or totals. The journey indicates the selected workspace; it does not imply completed stages or enforce workflow gates.
 
 ## Grid & Meter review

@@ -1,6 +1,7 @@
 import assert from 'node:assert/strict';
 import {spawn} from 'node:child_process';
 import path from 'node:path';
+import {mkdir,writeFile} from 'node:fs/promises';
 import {CHECKS,productLines} from '../public/crossover-policy.js';
 const base='http://127.0.0.1:3115';
 const directory=path.resolve('output',`api-test-${Date.now()}`);
@@ -32,6 +33,16 @@ try{
   await changeJob('crossover-save',{key:'extras',evidence:{items:job.contracts.at(-1).extras.map(()=>({organised:true,owner:'Extras Admin',reference:'SAMPLE-EXTRA',completedAt}))}});
   for(const key of CHECKS)await changeJob('crossover-check',{key});
   assert.equal((await request('/api/job-management')).value.records.length,0,'All green must not automatically release');
+  const timerDirectory=path.join(directory,'reminder-restart');await mkdir(timerDirectory,{recursive:true});
+  const dueJob=structuredClone(job);dueJob.crossover.readyWindow.readyAt=new Date(Date.now()-25*3600000).toISOString();dueJob.crossover.readyWindow.dueAt=new Date(Date.now()-3600000).toISOString();
+  await writeFile(path.join(timerDirectory,'clients.json'),JSON.stringify([dueJob]));
+  for(let boot=0;boot<2;boot++){
+    const timerChild=spawn(process.execPath,['scripts/serve.mjs'],{env:{...process.env,PORT:'3117',WORK_CRM_REVIEW_DATA_DIR:timerDirectory},stdio:'pipe',windowsHide:true});
+    try{
+      let result;for(let i=0;i<40;i++){try{const response=await fetch('http://127.0.0.1:3117/api/clients/preview-18');if(response.ok){result=await response.json();break;}}catch{}await new Promise(r=>setTimeout(r,100));}
+      assert.ok(result,'Reminder test server did not start');assert.equal(result.record.crossover.interactions.length,2,'Restart must not duplicate overdue reminders');assert.ok(result.record.crossover.interactions.every(i=>i.kind==='submission-reminder'&&i.status.startsWith('Queued')));
+    }finally{const stopped=new Promise(resolve=>timerChild.once('exit',resolve));timerChild.kill();await stopped;}
+  }
   await changeJob('crossover-prepare-submission');let token=job.crossover.confirmation.token;
   await changeJob('crossover-cancel-submission',{token});assert.equal((await request('/api/job-management')).value.records.length,0);
   await changeJob('crossover-prepare-submission');token=job.crossover.confirmation.token;
@@ -48,5 +59,5 @@ try{
     assert.equal((await fetch(repBase+'/api/job-management')).status,403);
     const forged=await fetch(repBase+'/api/clients/preview-13',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({revision:signed.revision,role:'management',actor:'Forged Manager',action:'decide-change',changeId:'fake',decision:'Approved'})});assert.notEqual(forged.status,200);assert.match((await forged.json()).error,/Management permission/);
   }finally{repChild.kill();}
-  console.log('Client API checks passed: shared history, file evidence, role scope, signed locks, seven-stage gating, NO cancellation, YES-confirmed job inbox, two queued channels, duplicate rejection and stale handover withdrawal.');
+  console.log('Client API checks passed: shared history, file evidence, permissions, seven-stage YES/NO gating, queued channels, persisted 24-hour reminder catch-up without restart duplicates, and stale handover withdrawal.');
 }finally{child.kill();}

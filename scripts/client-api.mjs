@@ -4,7 +4,7 @@ import {createClients,project,updateClient,canAccess,event,DOCUMENT_LABELS} from
 import {fileURLToPath} from 'node:url';
 import path from 'node:path';
 import {createGridSamples} from '../public/grid-data.js';
-import {reconcileRelease} from './crossover-model.mjs';
+import {reconcileRelease,processCrossoverReminders} from './crossover-model.mjs';
 import {submitted} from '../public/crossover-policy.js';
 const directory=process.env.WORK_CRM_REVIEW_DATA_DIR||fileURLToPath(new URL('../output/client-review/',import.meta.url));
 const statePath=path.join(directory,'clients.json');
@@ -29,6 +29,19 @@ if(records.some(r=>!r.gridReview)){
 let reopened=false;
 for(const record of records){const revision=record.revision;reconcileRelease(record,context,event);if(revision!==record.revision)reopened=true;}
 if(reopened)await persist(records);
+const reminderContext={role:'management',actor:'System 24-Hour Reminder'};
+export async function runCrossoverTimers(now=Date.now()){
+  if(context.role!=='management')return;
+  const task=queue.then(async()=>{
+    const next=structuredClone(records);let changed=false;
+    for(const record of next){const revision=record.revision;processCrossoverReminders(record,reminderContext,event,now);if(record.revision!==revision)changed=true;}
+    if(changed)await persist(next);
+  });
+  queue=task.catch(()=>{});return task;
+}
+await runCrossoverTimers();
+const reminderTimer=setInterval(()=>{runCrossoverTimers().catch(error=>console.error('Crossover reminder persistence failed:',error.message));},60000);
+reminderTimer.unref();
 function json(response,status,value){response.writeHead(status,{'Content-Type':'application/json; charset=utf-8','Cache-Control':'no-store','X-Content-Type-Options':'nosniff'});response.end(JSON.stringify(value));}
 async function readBody(request){let result='',length=0;for await(const chunk of request){length+=chunk.length;if(length>12*1024*1024)throw Error('Request too large. Limit files to 8 MB.');result+=chunk;}return JSON.parse(result||'{}');}
 export async function handleClients(request,response,url){
@@ -36,6 +49,7 @@ export async function handleClients(request,response,url){
   try{
     if(!['management','rep'].includes(context.role)){json(response,403,{error:'No authorised review role configured.'});return true;}
     if(request.headers.origin&&request.headers.origin!==`http://${request.headers.host}`){json(response,403,{error:'Cross-origin requests are not allowed.'});return true;}
+    await runCrossoverTimers();
     if(url.pathname==='/api/session'){json(response,200,{...context,mode:'Local sample review — production identity and Sales CRM connection pending'});return true;}
     if(url.pathname==='/api/job-management'){
       if(context.role!=='management'){json(response,403,{error:'Management permission is required.'});return true;}
