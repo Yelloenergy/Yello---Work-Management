@@ -1,5 +1,11 @@
 # Work Management CRM
 
+## Approved crossover register baseline — 10 November 2026
+
+- The owner approved the current crossover front register as final. Preserve its boxed Status next to the client, left-aligned green/neutral check squares, filtered progress bar, hover-underlined client names, dark Submit / Not Ready treatment, source Sales Date and left-aligned Submission Date.
+- This approval finalises the front layout and existing review behaviour. Make no further redesign or scope changes unless requested. Inside-page refinements will be reviewed separately.
+- Existing seven-check, Yes-confirmation, version invalidation and 24-hour queued reminder rules remain in force. Final front approval does not mean production identity, Sales CRM ingestion, Inventory/STC integrations or Email/SMS delivery are connected.
+
 ## Latest crossover register and reminder rules — 10 November 2026
 
 - Place boxed operational Status immediately after Client / Sale ID. All four statuses (Awaiting, Working On it, Need Help, Approved) use consistent boxes. Checks remain left-aligned green/neutral squares.

@@ -4,6 +4,8 @@ Local, navigable shell for the post-approval job journey. Prepared on 2 November
 
 Updated 9 November 2026 with Grid & Meter review workflows and a Management Sales Record backed by a shared local sample API.
 
+The crossover front register was approved as the final layout baseline on 10 November 2026. Preserve the reviewed layout and behaviour; inside-page refinements remain a separate review. This is a local review baseline, with the integration limitations below still applicable.
+
 ## Run
 
 Node.js 22 or later; no package installation is required.
