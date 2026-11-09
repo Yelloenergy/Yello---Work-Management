@@ -1,3 +1,4 @@
+import {formatCrmDate} from './crm-standards.js';
 import { sampleOrders } from './sample-orders.js';
 // Explicitly fictional sample orders. Never use them as business records.
 export const registerFields = ['Client Name', 'Sale ID', 'System Type', 'Site Type', 'Sales Rep', 'System Size', 'Battery Size', 'Phase Type', 'Site Visit Notes', 'What Happened', 'Sales Date', 'Last Update'];
@@ -14,10 +15,10 @@ const previewIds = sampleOrders.map(order=>order.id);
 const previews = new Map(sampleOrders.map(order=>[order.id,order]));
 const state = { preview: true, search: '', scrollLeft: 0, scrollTop: 0, profile: 'Client Information' };
 const escape = value => String(value).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
-const stamp = value => new Intl.DateTimeFormat('en-AU', {dateStyle:'medium',timeStyle:'short',timeZone:'Australia/Sydney'}).format(new Date(value));
+const stamp = value => formatCrmDate(value);
 function latest(id) { return previews.get(id)?.events.at(-1); }
 function fieldValue(id,field){const event=latest(id);return field==='What Happened'&&event?event.text:field==='Last Update'&&event?event.at:previews.get(id)?.fields[field];}
-function values(id, field) {const value=fieldValue(id,field);return value?escape(field==='Last Update'?stamp(value):field==='Sales Date'?value.split('-').reverse().join('/'):value):'—';}
+function values(id, field) {const value=fieldValue(id,field);return value?escape(field==='Last Update'?stamp(value):field==='Sales Date'?formatCrmDate(value):value):'—';}
 function contactControls(id){return `<div class="contact-controls">${[['Phone','☎'],['Email','✉'],['SMS','▣'],['WhatsApp','W']].map(([channel,symbol])=>`<a href="#sales-management/${id}" data-contact="${id}" data-channel="${channel}" aria-label="${channel} ${escape(previews.get(id).fields['Client Name'])}" title="${channel}"><span aria-hidden="true">${symbol}</span><span class="visually-hidden">${channel}</span></a>`).join('')}</div>`;}
 export function mountSales(panel, route) {
   document.querySelector('.journey').hidden = true;

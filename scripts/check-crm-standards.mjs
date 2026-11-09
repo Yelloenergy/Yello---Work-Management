@@ -1,0 +1,12 @@
+import assert from 'node:assert/strict';
+import {crmYears,crmYear,formatCrmDate} from '../public/crm-standards.js';
+assert.deepEqual(crmYears(['2026'],new Date('2026-11-09T00:00:00Z')),['2026','2027','2028','2029','2030']);
+assert.deepEqual(crmYears(['2024','2026'],new Date('2026-11-09T00:00:00Z')),['2026','2025','2024','2027','2028','2029','2030']);
+assert.equal(crmYear(new Date('2026-12-31T12:59:59Z')),2026);
+assert.deepEqual(crmYears(['2026'],new Date('2026-12-31T13:00:00Z')),['2027','2026','2028','2029','2030']);
+assert.equal(crmYears([],new Date('2030-12-31T13:00:00Z'))[0],'2031');
+assert.equal(formatCrmDate('2026-10-22T22:30:00Z'),'23 October 2026 9:30AM');
+assert.equal(formatCrmDate('2026-07-22T23:30:00Z'),'23 July 2026 9:30AM');
+assert.equal(formatCrmDate('2026-10-23'),'23 October 2026');
+assert.equal(formatCrmDate('invalid'),'Not recorded');
+console.log('CRM standards passed: Sydney year rollover, current/past/future ordering through 2030, long dates, AM/PM, DST and date-only values.');

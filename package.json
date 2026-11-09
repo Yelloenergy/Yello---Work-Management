@@ -7,7 +7,7 @@
   "scripts": {
     "dev": "node scripts/serve.mjs",
     "start": "node scripts/serve.mjs",
-    "check": "node --check public/app.js && node --check public/sales.js && node --check public/sample-orders.js && node --check public/grid.js && node --check public/management.js && node --check scripts/serve.mjs && node scripts/check-shell.mjs && node scripts/check-grid.mjs && node scripts/check-management.mjs && node --check public/crossover.js && node --check scripts/crossover-model.mjs && node scripts/check-crossover.mjs",
+    "check": "node --check public/app.js && node --check public/sales.js && node --check public/sample-orders.js && node --check public/grid.js && node --check public/management.js && node --check scripts/serve.mjs && node scripts/check-shell.mjs && node scripts/check-grid.mjs && node scripts/check-management.mjs && node --check public/crossover.js && node --check scripts/crossover-model.mjs && node scripts/check-crossover.mjs && node scripts/check-crm-standards.mjs",
     "check:api": "node scripts/check-client-api.mjs"
   },
   "engines": {

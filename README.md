@@ -44,6 +44,8 @@ The server's review context is configured with `WORK_CRM_REVIEW_ROLE`, `WORK_CRM
 
 ## Visual system
 
+Mandatory year/date and crossover indicator rules are in `docs/CRM-STANDARDS.md`, implemented by the shared `public/crm-standards.js` helper. Current Sydney year comes first, historical years follow newest first, and future years are offered through 2030. Timestamp displays use `23 October 2026 9:30AM`. Approved crossover checks use solid bright green squares derived from saved inside-page verification.
+
 Deep Plum `#291D38`, Petrol `#102F36`, Teal `#087B83`, light neutral content surfaces, Bahnschrift with Segoe UI and Arial fallbacks. Typography and component geometry follow the Sales CRM reference recorded in AGENTS.md.
 
 ## Scope

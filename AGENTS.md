@@ -1,5 +1,13 @@
 # Work Management CRM
 
+## Mandatory CRM-wide year and date standard — 10 November 2026
+
+- All year selectors must use `public/crm-standards.js`. Include years through at least 2030, even with no records. Among year choices, current Sydney year comes first, followed by completed years newest to oldest, followed by future years in ascending order. All is an optional leading filter. On a new Sydney calendar year, automatically move that year to the front and put the completed year immediately after it. Preserve historical years and the user's selected filter. Do not hard-code descending future years ahead of the current year.
+- All recorded timestamps displayed in Work CRM use Sydney time and this exact pattern: `23 October 2026 9:30AM` (full month, no comma, uppercase AM/PM with no preceding space). Use the shared formatter for registers, details, history, approvals, submission and packing slips. True date-only source values display `23 October 2026`; never invent a time for them. Native date/time inputs retain their browser controls.
+- Persist timestamps as ISO instants with timezone/UTC; human-readable formatting is for display only. Record workflow decision times on the server and preserve historical source timestamps. Do not rename canonical fields or change their meaning to enforce formatting.
+- Crossover pass indicators are solid bright green squares (`#24E36F`), not ticks. Pending or stale checks remain neutral squares. Colour derives from current saved inside-page evidence and verification; there are no front-register overrides. Relevant changes remove green until checked again. Submission remains separately gated by confirmed Yes.
+- Inside-page templates already exist for Order Details, Grid, STC, Inventory, Pricing, Extras, Submission and Activity Log. Product/price and source values remain linked to the same approved order. Final extras catalogue, live external evidence and production integrations are pending.
+
 ## Current scope
 
 - On 2 November 2026 the owner asked to review the existing Sales CRM visual structure as the reference for Work Management. Further project instructions will follow.

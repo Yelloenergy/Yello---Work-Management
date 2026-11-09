@@ -1,11 +1,12 @@
 // Review workflow metadata; Sales CRM field labels inside fields stay unchanged.
+import {formatCrmDate} from './crm-standards.js';
 export const CHECKS=['order','grid','stc','products','inventory','pricing','extras'];
 export const CHECK_LABELS={order:'Check Order',grid:'Check Grid',stc:'Check STC',products:'Check Product',inventory:'Check Inventory',pricing:'Pricing Checked',extras:'Extras Checked'};
 export const WORK_STATUSES=['Awaiting','Working On it','Need Help','Approved'];
 export function submitted(r){return ready(r)&&r.crossover?.submission?.stamp===releaseStamp(r)&&r.crossover?.release?.stamp===releaseStamp(r);}
 export function workStatus(r){return submitted(r)?'Approved':['Awaiting','Working On it','Need Help'].includes(r.crossover?.status)?r.crossover.status:Object.keys(r.crossover?.reviews||{}).length?'Working On it':'Awaiting';}
 export function dateChecked(r){return Object.values(r.crossover?.reviews||{}).map(v=>v.at).filter(Boolean).sort().at(-1)||'';}
-export function formatCheckedAt(value){if(!value)return 'Not checked';const p=Object.fromEntries(new Intl.DateTimeFormat('en-AU',{timeZone:'Australia/Sydney',day:'numeric',month:'long',year:'numeric',hour:'numeric',minute:'2-digit',hour12:true}).formatToParts(new Date(value)).map(v=>[v.type,v.value]));return `${p.day} ${p.month} ${p.year} ${p.hour}:${p.minute}${p.dayPeriod.toUpperCase()}`;}
+export function formatCheckedAt(value){return formatCrmDate(value,'Not checked');}
 export function currentOrder(r){return r.contracts.at(-1);}
 export function productLines(r){return (currentOrder(r)?.products||[]).map((p,index)=>({index,group:p.group,fields:p.fields,quantity:Number(Object.entries(p.fields).find(([k])=>/^No Of (Panels|Battery|Inverter|Cabinet|Racking Kits)$/.test(k))?.[1])||null}));}
 export function evidenceFor(r,key){const c=r.crossover||{};return key==='grid'?r.gridReview:key==='order'?{fields:r.fields,documents:r.documents.map(d=>d.id)}:key==='products'?r.changes:key==='pricing'?{price:currentOrder(r)?.price,extras:currentOrder(r)?.extras,finance:currentOrder(r)?.finance}:c[key];}

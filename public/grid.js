@@ -1,9 +1,10 @@
+import {formatCrmDate} from './crm-standards.js';
 import { PROVIDERS,STATUSES,HOUR,DAY,inputDate,fromSydney,statusFor,timing,validateRecord } from './grid-model.js';
 import { createGridSamples } from './grid-data.js';
 
 const KEY='yello-grid-sample-workspace-v1';
 const esc=value=>String(value??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
-const formatDate=value=>value?new Intl.DateTimeFormat('en-AU',{timeZone:'Australia/Sydney',dateStyle:'medium',timeStyle:'short'}).format(new Date(value)):'Not recorded';
+const formatDate=value=>formatCrmDate(value);
 const text=value=>value?esc(value):'—';
 let records=createGridSamples();
 try{const saved=JSON.parse(localStorage.getItem(KEY));if(Array.isArray(saved)&&saved.length&&saved.every(r=>r.id&&r.fields&&Array.isArray(r.files)&&Array.isArray(r.events)))records=saved;}catch{}
@@ -99,7 +100,7 @@ function alerts(panel){
   dialog(panel,'Deadline Alerts',`<p class="grid-muted">In-app sample alerts. Unresolved deadlines remain visible. No external notifications are connected.</p><div class="grid-alert-list">${notifications.map(n=>`<a href="#grid-management/${n.r.id}/${n.label.startsWith('Grid')?'grid':'meter'}"><strong>${esc(n.label)}</strong><span>${text(n.r.fields['Client Name'])} · ${text(n.r.fields['Sale ID'])}</span><small>Due ${formatDate(n.due)}</small></a>`).join('')||'<p>No outstanding deadlines.</p>'}</div>`);
   panel.querySelectorAll('.grid-alert-list a').forEach(a=>a.addEventListener('click',()=>panel.querySelector('dialog')?.close()));
 }
-function readOnly(field,value){return `<div class="grid-readonly"><span>${esc(field)}</span><strong>${text(value)}</strong></div>`;}
+function readOnly(field,value){if(['Sales Date','Install Date'].includes(field))value=formatDate(value);return `<div class="grid-readonly"><span>${esc(field)}</span><strong>${text(value)}</strong></div>`;}
 function input(field,value,type='text'){return `<label>${esc(field)}<input aria-label="${esc(field)}" name="${esc(field)}" type="${type}" value="${esc(type==='datetime-local'?inputDate(value):value||'')}" ${type==='text'?'maxlength="250"':''}></label>`;}
 function select(field,value,options){return `<label>${esc(field)}<select aria-label="${esc(field)}" name="${esc(field)}">${options.map(o=>`<option ${o===value?'selected':''}>${esc(o)}</option>`).join('')}</select></label>`;}
 function fileList(r,group){const files=r.files.filter(f=>f.group===group);return `<div class="grid-file-list">${files.map(file=>`<button type="button" class="grid-file" data-download="${esc(file.id)}">▤ ${esc(file.name)} <span>Download</span></button>`).join('')||'<p class="grid-muted">No files attached in this section.</p>'}</div>`;}
