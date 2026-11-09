@@ -1,5 +1,7 @@
 # Job Crossover Check — local review
 
+Register visual refinement: check cells show aligned squares without secondary explanations. Header and body columns align; client-name links underline on hover/focus. The main progress bar counts approved checks across the currently filtered orders, and separately reports submitted jobs. Empty results show 0%; a fully checked filtered set shows 100% without bypassing confirmed Submission. Product change details remain inside the record.
+
 The operational handover check replaces standalone STC, Inventory and Offload workspaces. It does not repeat sales approval. Signed orders appear in a compact register with Client / Sale ID followed by Check Order, Check Grid, Check STC, Check Product, Check Inventory, Pricing Checked, Extras Checked, Submission, Date Checked and Status. Responsible Admin appears under the client identity; Product Changes Yes/No remains supporting information. Twenty records per page; long registers scroll.
 
 Open a Sale ID for Order Details, Grid, STC, Inventory, Pricing, Extras, Submission and Activity Log. All reuse the existing client record and active approved contract version. Existing Sales field labels remain unchanged. New data is workflow evidence under `crossover`, not replacement Sales fields.
