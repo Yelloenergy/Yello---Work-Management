@@ -1,4 +1,4 @@
-import {mountCrossover as mountJobCrossover} from './crossover.js';
+import {mountCrossover as mountJobCrossover,mountJobInbox} from './crossover.js';
 import { mountGrid,mountGridActivity } from './grid.js';
 import { mountManagement } from './management.js';
 
@@ -86,11 +86,13 @@ function render() {
   nextLink.hidden = !next;
   if (next) { nextLink.href = `#${next.id}`; nextLink.innerHTML = `${next.title} <span aria-hidden="true">→</span>`; }
   // Invalidate any pending management response when navigation changes.
+  panel._crossoverCleanup?.();panel._crossoverCleanup=null;
   delete panel.dataset.managementMount;
   delete panel.dataset.gridMount;
   delete panel.dataset.crossoverMount;
   if(section.id==='job-crossover-check') mountJobCrossover(panel,location.hash.slice(1));
   if(section.id==='job-management') panel.insertAdjacentHTML('afterbegin','<p class="crossover-lock" role="status">Crossover approval required · Only released jobs are eligible for allocation. Team assignment and booking are not connected yet.</p>');
+  if(section.id==='job-management') mountJobInbox(panel);
   if(section.id==='sales-management') mountManagement(panel,location.hash.slice(1));
   if(section.id==='grid-management') mountGrid(panel,location.hash.slice(1));
   if(section.id==='activity-logs') mountGridActivity(panel);

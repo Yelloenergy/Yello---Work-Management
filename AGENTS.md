@@ -20,6 +20,17 @@
 
 ### Detailed crossover review — later 9 November 2026
 
+#### Superseding register and Submission decision
+
+- Front columns after Client / Sale ID are exactly: Check Order, Check Grid, Check STC, Check Product, Check Inventory, Pricing Checked, Extras Checked, Submission, Date Checked, Status. Admin stays in the client identity subtitle; product-change Yes/No is supporting information.
+- Search Client Name, Location and Phone using existing source fields. Provide Year and Status filter tabs. Workflow Status values are exactly Awaiting, Working On it, Need Help, Approved. These are crossover metadata and must never overwrite the separate Sales Status field.
+- Date Checked is the last verification time, displayed in Sydney time as `23 October 2026 9:30AM`. It is not Sales Date, Last Update or the submission timestamp.
+- Seven checks must all be green, including pricing. Green checks DO NOT automatically release the job. Submission is disabled until all seven pass. Clicking Submit opens `Are you sure?` with Yes / No. No does not release or queue messages. Only Yes confirms the current order snapshot and releases the job to Job Management.
+- Backend confirmation tokens bind to the checked source snapshot, revision, actor and short expiry. Reject stale, missing or repeated confirmations. Approved status requires a current confirmed Submission, not a manually selected status.
+- Job Management's incoming list is server-filtered to currently confirmed submissions. Relevant source changes withdraw the handover, cancel unsent notifications and require new checks and confirmed Submission.
+- Prepare separate interim Email and SMS saying the order is ready for booking. Final templates will be supplied later. Messages are queued only after Yes, never actually sent until the delivery services are connected. Preserve actor/time and submission history.
+- Signed orders populate the register from the same local client source automatically, with a 30-second visible-register refresh. Production Sales CRM ingestion remains unconnected; do not create duplicate client records.
+
 - The owner approved developing the proposed register/detail flow after describing the handover evidence. This supersedes the three static cards with a signed-order register and Order Details, Grid, STC, Inventory, Extras and Activity Log tabs.
 - Six checks are Client Order Checked, Product Changes reconciled (with separate Yes/No), Grid Approved, STC Created, Inventory Ready and Extras Aligned. The client-order check is an operational handover review, not repeat sales approval.
 - Record responsible people, completion evidence, completion times and Admin verification actor/time. STC/Inventory/Extras deadlines are not agreed; optional due times must not become invented defaults. The wider extras list will be supplied later.

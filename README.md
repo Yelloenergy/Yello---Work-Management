@@ -26,7 +26,7 @@ Central shared workspaces: **Dashboards**, **Reports**, **Activity Logs**. These
 6. Payment Management — STC Payment / OFP Payments.
 7. Close Job — final handover and documents.
 
-Standalone STC and Inventory sections are removed. Old STC, Inventory and Offload links redirect to Job Crossover Check. It now has a signed-order register, six detail tabs, evidence and checks, a backend release gate and sample packing slips. See `docs/JOB-CROSSOVER.md` for ownership, timing, version invalidation and queued client interactions. Exact Inventory-ready criteria and source integrations remain pending; production allocation/booking is not connected.
+Standalone STC and Inventory sections are removed. Old STC, Inventory and Offload links redirect to Job Crossover Check. It has a signed-order register with Year/Status tabs and name/location/phone search; eight detail tabs; seven evidence checks including pricing; packing slips; and a backend Submission gate. All-green enables Submit; only a subsequent Yes confirmation releases the job into Job Management and queues draft Email/SMS. See `docs/JOB-CROSSOVER.md`. External delivery, Inventory source integration and production booking remain unconnected.
 
 Navigation, deep links, keyboard-accessible tabs and a mobile menu are functional. Empty states deliberately contain no invented records or totals. The journey indicates the selected workspace; it does not imply completed stages or enforce workflow gates.
 

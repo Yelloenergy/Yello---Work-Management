@@ -1,9 +1,14 @@
 // Review workflow metadata; Sales CRM field labels inside fields stay unchanged.
-export const CHECKS=['order','products','grid','stc','inventory','extras'];
-export const CHECK_LABELS={order:'Client Order Checked',products:'Product Changes',grid:'Grid Approved',stc:'STC Created',inventory:'Inventory Ready',extras:'Extras Aligned'};
+export const CHECKS=['order','grid','stc','products','inventory','pricing','extras'];
+export const CHECK_LABELS={order:'Check Order',grid:'Check Grid',stc:'Check STC',products:'Check Product',inventory:'Check Inventory',pricing:'Pricing Checked',extras:'Extras Checked'};
+export const WORK_STATUSES=['Awaiting','Working On it','Need Help','Approved'];
+export function submitted(r){return ready(r)&&r.crossover?.submission?.stamp===releaseStamp(r)&&r.crossover?.release?.stamp===releaseStamp(r);}
+export function workStatus(r){return submitted(r)?'Approved':['Awaiting','Working On it','Need Help'].includes(r.crossover?.status)?r.crossover.status:Object.keys(r.crossover?.reviews||{}).length?'Working On it':'Awaiting';}
+export function dateChecked(r){return Object.values(r.crossover?.reviews||{}).map(v=>v.at).filter(Boolean).sort().at(-1)||'';}
+export function formatCheckedAt(value){if(!value)return 'Not checked';const p=Object.fromEntries(new Intl.DateTimeFormat('en-AU',{timeZone:'Australia/Sydney',day:'numeric',month:'long',year:'numeric',hour:'numeric',minute:'2-digit',hour12:true}).formatToParts(new Date(value)).map(v=>[v.type,v.value]));return `${p.day} ${p.month} ${p.year} ${p.hour}:${p.minute}${p.dayPeriod.toUpperCase()}`;}
 export function currentOrder(r){return r.contracts.at(-1);}
 export function productLines(r){return (currentOrder(r)?.products||[]).map((p,index)=>({index,group:p.group,fields:p.fields,quantity:Number(Object.entries(p.fields).find(([k])=>/^No Of (Panels|Battery|Inverter|Cabinet|Racking Kits)$/.test(k))?.[1])||null}));}
-export function evidenceFor(r,key){const c=r.crossover||{};return key==='grid'?r.gridReview:key==='order'?{fields:r.fields,documents:r.documents.map(d=>d.id)}:key==='products'?r.changes:c[key];}
+export function evidenceFor(r,key){const c=r.crossover||{};return key==='grid'?r.gridReview:key==='order'?{fields:r.fields,documents:r.documents.map(d=>d.id)}:key==='products'?r.changes:key==='pricing'?{price:currentOrder(r)?.price,extras:currentOrder(r)?.extras,finance:currentOrder(r)?.finance}:c[key];}
 export function stampFor(r,key){
   const fields={...r.fields};delete fields['Last Activity'];delete fields['Last Update'];
   const source=key==='order'?{fields,documents:r.documents.map(d=>d.id),assignment:r.crossover?.order}:evidenceFor(r,key);
@@ -14,6 +19,7 @@ export function blockers(r,key){
   if(r.changes.some(c=>c.status==='Pending'))return ['Resolve pending order changes first.'];
   const c=r.crossover||{},e=c[key]||{};
   if(key==='order'||key==='products')return [];
+  if(key==='pricing'){const p=currentOrder(r).price;return p&&['Total Price','STC Value','Discount Applied','Deposit','OFP Balance','Extra Balance'].every(k=>Number.isFinite(p[k])&&p[k]>=0)?[]:['Signed pricing is incomplete or invalid.'];}
   if(key==='grid'){
     const f=r.gridReview?.fields||{};
     return f['Grid Status']==='Grid Approved'&&f['Approval Number']&&f['Approval Date']?[]:['Grid approval reference and date are required.'];

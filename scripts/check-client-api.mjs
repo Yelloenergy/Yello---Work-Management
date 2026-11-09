@@ -1,6 +1,7 @@
 import assert from 'node:assert/strict';
 import {spawn} from 'node:child_process';
 import path from 'node:path';
+import {CHECKS,productLines} from '../public/crossover-policy.js';
 const base='http://127.0.0.1:3115';
 const directory=path.resolve('output',`api-test-${Date.now()}`);
 const child=spawn(process.execPath,['scripts/serve.mjs'],{env:{...process.env,PORT:'3115',WORK_CRM_REVIEW_DATA_DIR:directory},stdio:'pipe',windowsHide:true});
@@ -20,11 +21,32 @@ try{
   const direct=await request('/api/clients/preview-13',{revision:signed.revision,action:'save-profile',page:'Price',fields:{'Total Price':'1'}});assert.equal(direct.status,400);
   assert.deepEqual((await request('/api/clients/preview-13')).value.record.contracts,signed.contracts);
   const cross=await fetch(base+'/api/clients/preview-01',{method:'POST',headers:{'Content-Type':'application/json',Origin:'https://unrelated.example'},body:'{}'});assert.equal(cross.status,403);
+  let job=(await request('/api/clients/preview-18')).value.record;
+  const changeJob=async(action,body={})=>{const result=await request('/api/clients/preview-18',{revision:job.revision,action,...body});assert.equal(result.status,200,result.value.error);job=result.value.record;};
+  const completedAt=new Date(Date.now()-3600000).toISOString();
+  await changeJob('crossover-save',{key:'order',evidence:{owner:'API Test Admin'}});
+  const grid=structuredClone(job.gridReview);grid.fields['Grid Status']='Grid Approved';
+  await changeJob('save-grid-review',{grid,expectedGridUpdate:job.gridReview.fields['Last Update']});
+  await changeJob('crossover-save',{key:'stc',evidence:{owner:'STC Admin',creator:'STC Creator',platform:'Bridgeselect',reference:'SAMPLE-STC',completedAt}});
+  await changeJob('crossover-save',{key:'inventory',evidence:{owner:'Warehouse Admin',reference:'SAMPLE-PO',status:'Prepared',completedAt,lines:productLines(job).map(p=>({quantity:p.quantity,packed:p.quantity,matched:true}))}});
+  await changeJob('crossover-save',{key:'extras',evidence:{items:job.contracts.at(-1).extras.map(()=>({organised:true,owner:'Extras Admin',reference:'SAMPLE-EXTRA',completedAt}))}});
+  for(const key of CHECKS)await changeJob('crossover-check',{key});
+  assert.equal((await request('/api/job-management')).value.records.length,0,'All green must not automatically release');
+  await changeJob('crossover-prepare-submission');let token=job.crossover.confirmation.token;
+  await changeJob('crossover-cancel-submission',{token});assert.equal((await request('/api/job-management')).value.records.length,0);
+  await changeJob('crossover-prepare-submission');token=job.crossover.confirmation.token;
+  await changeJob('crossover-submit',{token,confirmed:true});
+  assert.deepEqual((await request('/api/job-management')).value.records.map(r=>r.id),['preview-18']);
+  assert.equal(job.crossover.interactions.length,2);assert.ok(job.crossover.interactions.every(i=>i.status.startsWith('Queued')));
+  assert.equal((await request('/api/clients/preview-18',{revision:job.revision,action:'crossover-submit',token,confirmed:true})).status,400);
+  await changeJob('save-profile',{page:'Project Details',fields:{'Site Visit Notes':'API test changed access'}});
+  assert.equal((await request('/api/job-management')).value.records.length,0);assert.ok(job.crossover.interactions.every(i=>i.status.startsWith('Cancelled')));
   const repChild=spawn(process.execPath,['scripts/serve.mjs'],{env:{...process.env,PORT:'3116',WORK_CRM_REVIEW_DATA_DIR:directory,WORK_CRM_REVIEW_ROLE:'rep'},stdio:'pipe',windowsHide:true});
   try{
     const repBase='http://127.0.0.1:3116';let repReady=false;for(let i=0;i<40;i++){try{repReady=(await fetch(repBase+'/api/session')).ok;if(repReady)break;}catch{}await new Promise(r=>setTimeout(r,100));}assert.ok(repReady);
     const repList=await(await fetch(repBase+'/api/clients')).json();assert.ok(repList.records.length<25);assert.ok(repList.records.every(r=>r.fields['Rep Name']==='Jack'));
+    assert.equal((await fetch(repBase+'/api/job-management')).status,403);
     const forged=await fetch(repBase+'/api/clients/preview-13',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({revision:signed.revision,role:'management',actor:'Forged Manager',action:'decide-change',changeId:'fake',decision:'Approved'})});assert.notEqual(forged.status,200);assert.match((await forged.json()).error,/Management permission/);
   }finally{repChild.kill();}
-  console.log('Client API checks passed: no client creation, real file evidence, shared rep history, record scope, signed price lock and cross-origin rejection.');
+  console.log('Client API checks passed: shared history, file evidence, role scope, signed locks, seven-stage gating, NO cancellation, YES-confirmed job inbox, two queued channels, duplicate rejection and stale handover withdrawal.');
 }finally{child.kill();}

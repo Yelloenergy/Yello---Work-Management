@@ -1,8 +1,10 @@
 # Job Crossover Check — local review
 
-The operational handover check replaces standalone STC, Inventory and Offload workspaces. It does not repeat sales approval. Signed orders appear in a compact searchable register with six verification indicators, Product Changes Yes/No, responsible Admin, processing time and release state. Twenty records per page; long registers scroll.
+The operational handover check replaces standalone STC, Inventory and Offload workspaces. It does not repeat sales approval. Signed orders appear in a compact register with Client / Sale ID followed by Check Order, Check Grid, Check STC, Check Product, Check Inventory, Pricing Checked, Extras Checked, Submission, Date Checked and Status. Responsible Admin appears under the client identity; Product Changes Yes/No remains supporting information. Twenty records per page; long registers scroll.
 
-Open a Sale ID for Order Details, Grid, STC, Inventory, Extras and Activity Log. All reuse the existing client record and active approved contract version. Existing Sales field labels remain unchanged. New data is workflow evidence under `crossover`, not replacement Sales fields.
+Open a Sale ID for Order Details, Grid, STC, Inventory, Pricing, Extras, Submission and Activity Log. All reuse the existing client record and active approved contract version. Existing Sales field labels remain unchanged. New data is workflow evidence under `crossover`, not replacement Sales fields.
+
+Search uses Client Name / Preferred Name, Location, Suburb and existing phone fields (Sale ID remains supported). Year tabs derive from the source Sales Date. Workflow status tabs are All, Awaiting, Working On it, Need Help and Approved. Crossover status is separate from Sales Status. Date Checked is the most recent verification time formatted in Sydney time as `23 October 2026 9:30AM`. Visible registers refresh every 30 seconds, preserving filters; live production ingestion is still pending.
 
 ## Evidence and ownership
 
@@ -17,9 +19,11 @@ New workflow metadata includes ownership, evidence references, completion/due ti
 
 ## Release and printing
 
-The shared server validates all six checks. Unsigned contracts, pending changes, missing evidence, ordered-only Inventory, unmatched lines or incomplete Extras block release. Each verification refers to the source evidence and contract version checked. Relevant edits invalidate checks; the API withdraws a stale release and cancels its unsent interaction. Activity notes alone do not invalidate checks.
+The shared server validates all seven checks, including a separate review of current signed pricing and balances. Unsigned contracts, pending changes, missing evidence, ordered-only Inventory, unmatched lines or incomplete Extras block Submission. Each verification refers to the source evidence and contract version checked. Relevant edits invalidate checks; the API withdraws a stale release and cancels unsent interactions. Activity notes alone do not invalidate checks.
 
-The last successful check automatically records release and one readiness interaction per distinct release snapshot. Repeating a check does not duplicate the interaction. Interaction status is **Queued — delivery not connected**. No message is sent. Future delivery must revalidate readiness and use an idempotent outbox worker.
+All green means ready to submit, not released. Submit is disabled until all checks pass. The first click prepares a five-minute server confirmation bound to the current source snapshot and actor. A Yes / No dialog asks `Are you sure?`. No cancels without release or messages. Yes revalidates revision, token, actor, expiry and all checks, then records Submission, release and Approved status. Replay is rejected. Only currently valid confirmed submissions appear in the server-filtered `/api/job-management` inbox. Superseded earlier automatic releases are withdrawn on startup; history is retained.
+
+Confirmed Submission queues two interim messages: Email and SMS telling the client the order is ready for booking. Their channel, recipient, wording, actor-linked submission and timestamp are retained. Interaction status is **Queued — delivery not connected**. No message is sent. Future delivery must revalidate readiness and use an idempotent outbox worker. Final templates remain pending.
 
 Preparing a full-job packing slip requires Prepared Inventory, exact approved quantities, matched products and confirmed packed quantities for every line. The saved slip keeps order version, specifications, quantities, preparer and time. Browser printing hides other UI. A changed Inventory/order stamp marks the slip superseded and disables its Print control. Printer completion is not asserted; history says prepared.
 
@@ -29,4 +33,4 @@ This is a local sample backend with a server-configured review identity, not pro
 
 The shared local store is ignored by Git and contains only fictional review data. Existing signed snapshots remain unchanged. A few legacy fixtures contain unverified racking quantities and deliberately cannot pass Inventory matching until corrected through the source change workflow.
 
-`node scripts/check-crossover.mjs` verifies the six-check gate, Inventory mismatch and ordered-only blockers, packing quantities, immutable original contracts, version/source invalidation, rep restrictions and interaction deduplication. Existing API, grid and management checks continue to apply.
+`node scripts/check-crossover.mjs` verifies seven-check gating, pricing, YES/NO confirmation, expired/stale/repeated confirmation rejection, Inventory blockers, packing quantities, immutable contracts, source invalidation, role scope and date formatting. API tests also verify that all-green and No stay out of Job Management, Yes produces a job plus two queued channels, and changed source data withdraws the job and cancels messages. Existing grid and management checks continue to apply.
