@@ -8,3 +8,6 @@
 .cx-table .cx-light .visually-hidden{left:0;top:0}.cx-table .cx-light{position:relative}
 .cx-table th:nth-child(n+2):nth-child(-n+8),.cx-table td:nth-child(n+2):nth-child(-n+8){text-align:left}
 .cx-table{min-width:1560px}.cx-col-status{width:140px}.cx-col-sale-date{width:190px}.cx-table th:nth-child(9),.cx-table td:nth-child(9){text-align:left}.cx-status{display:inline-flex;align-items:center;justify-content:center;min-height:30px;min-width:108px;padding:5px 10px;border:1px solid #d8d3df;border-radius:6px;background:#f4f2f6;color:#625a6c;font-size:11px;line-height:1.3}.cx-status-working-on-it{background:#e9f4f4;border-color:#b5d6d8;color:#06666d}.cx-status-need-help{background:#fff0dd;border-color:#e8bd80;color:#884500}.cx-status-approved{background:#e9f7ed;border-color:#b8ddc5;color:#10786a}
+.cx-table .cx-submit-ready{background:var(--petrol);border-color:var(--petrol);color:#fff;font-weight:700}.cx-table .cx-submit-ready:hover{background:#17434c;border-color:#17434c}.cx-not-ready{display:inline-flex;align-items:center;justify-content:center;min-height:32px;font-size:12px;font-weight:650;color:#625a6c}
+.cx-table .cx-submit-row:disabled{opacity:1;background:#4b6065;border-color:#4b6065;color:#fff}
+.cx-table th:nth-child(11),.cx-table td:nth-child(11),.cx-table th:nth-child(12),.cx-table td:nth-child(12){text-align:left}
