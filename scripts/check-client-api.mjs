@@ -6,8 +6,9 @@ import {CHECKS,productLines} from '../public/crossover-policy.js';
 const base='http://127.0.0.1:3115';
 const directory=path.resolve('output',`api-test-${Date.now()}`);
 const child=spawn(process.execPath,['scripts/serve.mjs'],{env:{...process.env,PORT:'3115',WORK_CRM_REVIEW_DATA_DIR:directory},stdio:'pipe',windowsHide:true});
+let bootOutput='';child.stdout.on('data',chunk=>bootOutput+=chunk);child.stderr.on('data',chunk=>bootOutput+=chunk);
 try{
-  let ready=false;for(let i=0;i<40;i++){try{ready=(await fetch(base+'/api/session')).ok;if(ready)break;}catch{}await new Promise(r=>setTimeout(r,100));}assert.ok(ready,'API did not start');
+  let ready=false;for(let i=0;i<100;i++){try{ready=(await fetch(base+'/api/session')).ok;if(ready)break;}catch{}await new Promise(r=>setTimeout(r,100));}assert.ok(ready,'API did not start: '+bootOutput);
   const request=async(url,body)=>{const response=await fetch(base+url,body?{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)}:{});return {status:response.status,value:await response.json()};};
   assert.equal((await request('/api/clients',{})).status,405);
   let result=await request('/api/clients/preview-01'),record=result.value.record;assert.equal(record.documents.length,0);
@@ -31,6 +32,14 @@ try{
   await changeJob('crossover-save',{key:'stc',evidence:{owner:'STC Admin',creator:'STC Creator',platform:'Bridgeselect',reference:'SAMPLE-STC',completedAt}});
   await changeJob('crossover-save',{key:'inventory',evidence:{owner:'Warehouse Admin',reference:'SAMPLE-PO',status:'Prepared',completedAt,lines:productLines(job).map(p=>({quantity:p.quantity,packed:p.quantity,matched:true}))}});
   await changeJob('crossover-save',{key:'extras',evidence:{items:job.contracts.at(-1).extras.map(()=>({organised:true,owner:'Extras Admin',reference:'SAMPLE-EXTRA',completedAt}))}});
+  for(const label of ['Identification','Electricity Bill']){
+    const result=await request('/api/clients/preview-18/documents',{revision:job.revision,label,name:'Sample review evidence.txt',content:Buffer.from('Fictional source for API review testing.').toString('base64')});assert.equal(result.status,200);job=result.value.record;
+  }
+  await changeJob('save-profile',{page:'Grid Details',fields:{NMI:'43123456789'}});
+  await changeJob('review-contract-date',{date:'2026-10-22',documentId:job.documents.find(d=>d.label==='Signed Contract').id});
+  await changeJob('review-start');
+  for(const item of job.documentReview.rounds.at(-1).items){const source=job.documents.find(d=>item.sources.includes(d.label));await changeJob('review-answer',{itemId:item.id,state:'Checked',documentId:source.id,location:'Sample section 1',note:'API fixture reviewed'});}
+  await changeJob('review-finalise');
   for(const key of CHECKS)await changeJob('crossover-check',{key});
   assert.equal((await request('/api/job-management')).value.records.length,0,'All green must not automatically release');
   const timerDirectory=path.join(directory,'reminder-restart');await mkdir(timerDirectory,{recursive:true});

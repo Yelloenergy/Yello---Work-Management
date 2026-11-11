@@ -6,6 +6,8 @@ import path from 'node:path';
 import {createGridSamples} from '../public/grid-data.js';
 import {reconcileRelease,processCrossoverReminders} from './crossover-model.mjs';
 import {submitted} from '../public/crossover-policy.js';
+import {pdfPreview} from './pdf-preview.mjs';
+import {setTimeout as pause} from 'node:timers/promises';
 const directory=process.env.WORK_CRM_REVIEW_DATA_DIR||fileURLToPath(new URL('../output/client-review/',import.meta.url));
 const statePath=path.join(directory,'clients.json');
 // Local review identity is configured by the server, never by a browser field.
@@ -20,14 +22,21 @@ try{records=JSON.parse(await readFile(statePath,'utf8'));}catch{
   for(const record of records)if(record.contracts.length){const id=randomUUID();const content=Buffer.from(`FICTIONAL SIGNED CONTRACT EXAMPLE\n${record.fields['Sale ID']}\nFor layout review only. Not a real signed agreement.`);await writeFile(path.join(directory,id),content);record.documents.push({id,label:'Signed Contract',name:'Sample signed contract.txt',type:'text/plain',bytes:content.length,at:record.fields['Last Activity']});}
   await writeFile(statePath,JSON.stringify(records));
 }
-async function persist(next){const temp=statePath+'.tmp';await writeFile(temp,JSON.stringify(next));await rename(temp,statePath);records=next;}
+async function persist(next){
+  const temp=statePath+'.tmp';await writeFile(temp,JSON.stringify(next));
+  for(let attempt=0;;attempt++){
+    try{await rename(temp,statePath);break;}
+    catch(error){if(!['EPERM','EACCES','EBUSY'].includes(error.code)||attempt>=5)throw error;await pause(40*2**attempt);}
+  }
+  records=next;
+}
 const gridSeeds=createGridSamples();
 if(records.some(r=>!r.gridReview)){
   for(const r of records)if(!r.gridReview)r.gridReview=gridSeeds.find(g=>g.id===r.id);
   await persist(records);
 }
 let reopened=false;
-for(const record of records){const revision=record.revision;reconcileRelease(record,context,event);if(revision!==record.revision)reopened=true;}
+for(const record of records){if(record.contracts.length&&!record.reviewRequired){record.reviewRequired=true;reopened=true;}const revision=record.revision;reconcileRelease(record,context,event);if(revision!==record.revision)reopened=true;}
 if(reopened)await persist(records);
 const reminderContext={role:'management',actor:'System 24-Hour Reminder'};
 export async function runCrossoverTimers(now=Date.now()){
@@ -64,6 +73,14 @@ export async function handleClients(request,response,url){
     const record=records.find(r=>r.id===id);
     if(!record||!canAccess(record,view)){json(response,404,{error:'Client not found or outside your permitted records.'});return true;}
     if(request.method==='GET'){
+      if(docId&&url.searchParams.has('preview')){
+        const document=record.documents.find(d=>d.id===docId);if(!document||document.type!=='application/pdf')throw Error('Choose an attached PDF.');
+        const mode=url.searchParams.get('preview');if(!['info','page'].includes(mode))throw Error('Invalid preview request.');
+        let preview;
+        try{preview=await pdfPreview(directory,document.id,mode,Number(url.searchParams.get('page')||1));}
+        catch{throw Error('PDF preview unavailable. Check that the file is readable and not password-protected, or use Open File.');}
+        if(mode==='info')json(response,200,preview);else{response.writeHead(200,{'Content-Type':'image/png','Cache-Control':'no-store','X-Content-Type-Options':'nosniff'});response.end(preview);}return true;
+      }
       if(docId){const document=record.documents.find(d=>d.id===docId);if(!document){json(response,404,{error:'File not found.'});return true;}const bytes=await readFile(path.join(directory,document.id));response.writeHead(200,{'Content-Type':document.type,'Content-Disposition':`inline; filename="${document.name.replace(/[^a-zA-Z0-9 ._-]/g,'_')}"`,'Content-Security-Policy':"sandbox; default-src 'none'",'Cache-Control':'no-store','X-Content-Type-Options':'nosniff'});response.end(bytes);return true;}
       json(response,200,{record:project(record,view)});return true;
     }

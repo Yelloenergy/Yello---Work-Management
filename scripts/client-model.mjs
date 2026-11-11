@@ -1,5 +1,6 @@
 import { randomUUID } from 'node:crypto';
 import {updateCrossover,reconcileRelease} from './crossover-model.mjs';
+import {updateOrderReview} from './order-review-model.mjs';
 import { sampleOrders } from '../public/sample-orders.js';
 export const PAGES=['Client Details','Project Details','Grid Details','Documents','Products','Price','Outcome','Activity Log'];
 export const DOCUMENT_LABELS=['Electricity Bill','Meter Pic','Site Legend','PV Design','Battery Location','Build Plan','Interval Data','Signed Contract','Single Line Diagram (SLD)','Voltage Rise Calculation (VRC)','Identification','Strata Approval','Landlord Approval','Other'];
@@ -46,11 +47,17 @@ export function project(record,context){
   const result=structuredClone(record);delete result.draftContract;
   if(context.role!=='management')result.changes=result.changes.filter(c=>c.status==='Approved');
   if(context.role!=='management'){delete result.crossover;delete result.gridReview;}
+  if(context.role!=='management'){
+    const first=record.documentReview?.rounds.find(v=>v.finalizedAt);
+    if(first)result.submissionFeedback={saleId:record.fields['Sale ID'],version:first.version,score:first.score,reviewedAt:first.finalizedAt,issueLabels:first.items.filter(i=>first.firstFindings[i.id]?.state==='Needs Fix'&&first.firstFindings[i.id].cause==='Rep Submission').map(i=>i.label)};
+    delete result.documentReview;delete result.revisionShares;
+  }
   // No direct cost, GP, stock count or internal approval-rule fields are exposed.
   return result;
 }
 export function updateClient(record,body,context){
   if(!canAccess(record,context))throw Error('Access denied.');
+  if(body.action?.startsWith('review-')){const result=updateOrderReview(structuredClone(record),body,context,event);validateFields(result.fields);reconcileRelease(result,context,event);return result;}
   if(body.action==='save-grid-review'||body.action?.startsWith('crossover-'))return updateCrossover(structuredClone(record),body,context,event);
   if(body.revision!==record.revision)throw Error('This record changed. Refresh it before saving.');
   const draft=structuredClone(record),action=body.action;
@@ -73,6 +80,7 @@ export function updateClient(record,body,context){
     if(draft.fields['Legal Name Verified']!=='Yes'||!draft.fields['Legal Name'])throw Error('Verify Legal Name first.');
     if(draft.fields['System Type']!==draft.draftContract.systemType&&draft.draftContract.systemType)throw Error('System Type differs from the source proposal. Record the matching signed source snapshot first.');
     const snapshot=structuredClone(draft.draftContract);snapshot.client={'Legal Name':draft.fields['Legal Name'],'Preferred Name':draft.fields['Preferred Name']};draft.contracts.push(snapshot);draft.fields['Signed Contract Status']='Signed';
+    draft.reviewRequired=true;
     event(draft,context,'Sales Submission','Sample signed contract recorded; original product and price snapshot locked.');
   }else if(action==='request-change'){
     if(context.role!=='management')throw Error('Management permission is required.');
@@ -88,6 +96,7 @@ export function updateClient(record,body,context){
   }else if(action==='decide-change'){
     if(context.role!=='management')throw Error('Management permission is required.');
     const change=draft.changes.find(c=>c.id===body.changeId);if(!change||change.status!=='Pending')throw Error('No pending change found.');
+    if(change.target==='review')throw Error('Use the document review revision workflow with replacement signed evidence.');
     if(!['Approved','Rejected'].includes(body.decision))throw Error('Choose Approve or Reject.');
     if(body.decision==='Approved'){
       const current=draft.contracts.at(-1);if(current.version!==change.baseVersion)throw Error('The signed record has a newer version. Submit a fresh request.');

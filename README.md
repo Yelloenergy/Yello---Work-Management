@@ -6,6 +6,8 @@ Updated 9 November 2026 with Grid & Meter review workflows and a Management Sale
 
 The crossover front register was approved as the final layout baseline on 10 November 2026. Preserve the reviewed layout and behaviour; inside-page refinements remain a separate review. This is a local review baseline, with the integration limitations below still applicable.
 
+Updated 12 November 2026: crossover client records now use one source-document review page with checklist, version-specific coaching scores, controlled correction proposals and existing operational controls embedded below. The source review is backend-enforced for signed orders; older sample approvals reopen until reviewed. See `docs/DOCUMENT-REVIEW.md`. PDF preview requires local Poppler (automatically detected in the bundled runtime). Replacement contract generation/e-signing and external sharing remain unconnected.
+
 ## Run
 
 Node.js 22 or later; no package installation is required.

@@ -1,5 +1,6 @@
 // Review workflow metadata; Sales CRM field labels inside fields stay unchanged.
 import {formatCrmDate} from './crm-standards.js';
+import {reviewBlockers,activeReview} from './order-review-policy.js';
 export const CHECKS=['order','grid','stc','products','inventory','pricing','extras'];
 export const CHECK_LABELS={order:'Check Order',grid:'Check Grid',stc:'Check STC',products:'Check Product',inventory:'Check Inventory',pricing:'Pricing Checked',extras:'Extras Checked'};
 export const WORK_STATUSES=['Awaiting','Working On it','Need Help','Approved'];
@@ -13,11 +14,12 @@ export function evidenceFor(r,key){const c=r.crossover||{};return key==='grid'?r
 export function stampFor(r,key){
   const fields={...r.fields};delete fields['Last Activity'];delete fields['Last Update'];
   const source=key==='order'?{fields,documents:r.documents.map(d=>d.id),assignment:r.crossover?.order}:evidenceFor(r,key);
-  return JSON.stringify({version:currentOrder(r)?.version||0,changes:r.changes.map(c=>[c.id,c.status]),source});
+  return JSON.stringify({version:currentOrder(r)?.version||0,changes:r.changes.map(c=>[c.id,c.status]),source,documentReview:r.reviewRequired||r.documentReview?activeReview(r):undefined});
 }
 export function blockers(r,key){
   if(!currentOrder(r))return ['Signed contract is not recorded.'];
   if(r.changes.some(c=>c.status==='Pending'))return ['Resolve pending order changes first.'];
+  if(['order','products','pricing','extras','inventory'].includes(key)){const errors=reviewBlockers(r,key);if(errors.length)return errors;}
   const c=r.crossover||{},e=c[key]||{};
   if(key==='order'||key==='products')return [];
   if(key==='pricing'){const p=currentOrder(r).price;return p&&['Total Price','STC Value','Discount Applied','Deposit','OFP Balance','Extra Balance'].every(k=>Number.isFinite(p[k])&&p[k]>=0)?[]:['Signed pricing is incomplete or invalid.'];}

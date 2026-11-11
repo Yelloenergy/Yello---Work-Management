@@ -1,5 +1,16 @@
 # Work Management CRM
 
+## One-page internal document review — 11–12 November 2026
+
+- The owner authorised one internal checking page with source document left and checkboxes/checklist right, plus a score for each sale submission to improve reps. Do not recreate separate internal crossover pages. Existing operational sections are embedded on the same page. Preserve the approved front layout.
+- Cross-check client identity/contact/address, site/grid details, products, pricing/finance, signed extras, signed status/date, sale submission history and file correctness. Use existing canonical labels. Signed Contract Date was verified in the Sales Client Profile source; record missing values only from evidence, never from Sales Date or crossover Submission Date.
+- Checked requires the appropriate attached source and a page/section reference. Needs Fix blocks the relevant readiness section. Allow Not Applicable only for genuinely optional items with a reason. No file is considered verified merely because it was uploaded. No automated OCR/signature verification is implemented.
+- Store version-specific review snapshots, first findings and a provisional equal-weight-v1 coaching rubric. Report coverage separately. Classify issues as Rep Submission, Later Change, Review Correction or Unclear. Do not blame the rep for unclear or later/Admin changes. Finalise only when every item is assessed and causes are resolved; preserve the first finalised score through corrections. Older incomplete/sample versions must not be assigned invented historical scores.
+- Corrections are traceable proposals. Finalise the original assessment before creating them. Applying a batch requires a fresh replacement signed document, verified acceptance/reference and its date; create a new order version and reopen affected checks. Never directly overwrite signed originals. Stale or duplicate proposals are blocked; withdrawals retain history.
+- Rep/client sharing is explicit and remains draft/queued until recipient mapping and delivery are connected. Do not claim a full legal contract generator, live e-signing or actual external delivery.
+- Documentary review is enforced by the backend for signed records. Existing sample approvals reopen if they do not meet this new requirement. The seven-check gate, Yes confirmation and 24-hour reminder rules remain in force.
+- `docs/DOCUMENT-REVIEW.md` records field provenance, scoring, scope, PDF runtime requirements and validation. PDF pages render locally via Poppler; source documents and preview caches stay in ignored local storage.
+
 ## Approved crossover register baseline — 10 November 2026
 
 - The owner approved the current crossover front register as final. Preserve its boxed Status next to the client, left-aligned green/neutral check squares, filtered progress bar, hover-underlined client names, dark Submit / Not Ready treatment, source Sales Date and left-aligned Submission Date.
