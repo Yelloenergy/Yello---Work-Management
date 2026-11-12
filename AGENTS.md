@@ -1,5 +1,14 @@
 # Work Management CRM
 
+## Source viewer and Grid review refinement — 12 November 2026
+
+- Make the source document the dominant desktop area (approximately 75%) and keep the checklist compact on the right. Stack on smaller screens; retain readable forms and a taller document viewport.
+- Group every check under visible section headings: Client Details; Site & Grid Details; Products; Pricing & Finance; Extras; Contract & Submission; Attachments; Grid Approval. All remain on one page.
+- Show all order attachments plus existing Grid/Meter attachments in a visible list with Open File actions. Preserve names and canonical labels. Grid + Meter File is the observed source document label; Grid Approval is its review heading, not a replacement master field.
+- Managers must be able to open and review Grid approval evidence. Actual browser-local Grid files can be copied into shared review storage with their original source file ID preserved; deduplicate the visible list. Missing/unsupported bytes require attaching the original, not pretending a file is available.
+- Existing sample Grid files may open as clearly labelled fictional examples, but are not genuine evidence or selectable approval attachments. Never create a business approval by opening an example.
+- Grid review fields and its source document are required for Check Grid once documentary review is enabled. Grid approval is operational work and excluded from the rep coaching score. Source/evidence changes reopen the relevant review; saved older scores remain preserved.
+
 ## One-page internal document review — 11–12 November 2026
 
 - The owner authorised one internal checking page with source document left and checkboxes/checklist right, plus a score for each sale submission to improve reps. Do not recreate separate internal crossover pages. Existing operational sections are embedded on the same page. Preserve the approved front layout.

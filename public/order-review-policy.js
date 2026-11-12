@@ -1,4 +1,4 @@
-export function reviewSignature(r){const fields={...r.fields};delete fields['Last Activity'];delete fields['Last Update'];return JSON.stringify({fields,contract:r.contracts.at(-1),documents:r.documents.map(d=>[d.id,d.bytes]),signedEvidence:r.contractEvidence});}
+export function reviewSignature(r){const fields={...r.fields};delete fields['Last Activity'];delete fields['Last Update'];return JSON.stringify({schema:2,fields,contract:r.contracts.at(-1),documents:r.documents.map(d=>[d.id,d.bytes]),signedEvidence:r.contractEvidence,grid:{fields:['Grid Status','Grid Provider','NMI','Grid Applied Date','Approval Number','Approval Date'].map(k=>[k,r.gridReview?.fields[k]]),files:r.gridReview?.files.filter(f=>f.group==='grid').map(f=>[f.id,f.name,f.sample])}});}
 export function activeReview(r){return r.documentReview?.rounds?.at(-1);}
 export function reviewItems(r){
   const contract=r.contracts.at(-1),items=[];
@@ -23,15 +23,21 @@ export function reviewItems(r){
   add('signed-status','Signed Contract Status','order',r.fields['Signed Contract Status'],['Signed Contract']);
   add('sale-submission','Sale Submission History','order',r.submissionHistory,['Signed Contract','Other']);
   const required=new Set(['Signed Contract','Identification','Electricity Bill',...r.documents.map(d=>d.label)]);
-  for(const label of required)add('file-'+label,label+' · File Check','order',r.documents.filter(d=>d.label===label).map(d=>({name:d.name,type:d.type,bytes:d.bytes})),[label]);
+  for(const label of required){add('file-'+label,label+' · File Check',label==='Grid + Meter File'?'grid':'order',r.documents.filter(d=>d.label===label).map(d=>({name:d.name,type:d.type,bytes:d.bytes})),[label]);if(label==='Grid + Meter File')items.at(-1).scored=false;}
+  for(const key of ['Grid Status','Grid Provider','NMI','Approval Number','Approval Date']){add('grid-'+key,key,'grid',r.gridReview?.fields[key],['Grid + Meter File']);items.at(-1).scored=false;}
   return items;
+}
+export function reviewSection(item){
+  if(item.group==='grid')return 'Grid Approval';if(item.group==='products')return 'Products';if(item.group==='pricing')return 'Pricing & Finance';if(item.group==='extras')return 'Extras';
+  if(item.id.startsWith('file-'))return 'Attachments';if(['signed-date','signed-status','sale-submission'].includes(item.id))return 'Contract & Submission';
+  if(['Site Type','System Type','Phase Type','Roof Type','Height','Building Type','Strata Managed','Site Instructions / Rep Advice','NMI'].includes(item.label))return 'Site & Grid Details';return 'Client Details';
 }
 export function reviewScore(round){
   if(!round)return {score:null,covered:0,total:0,unclassified:0};
-  const first=Object.values(round.firstFindings||{}),unclassified=first.filter(v=>v.state==='Needs Fix'&&v.cause==='Unclear').length;
+  const all=Object.entries(round.firstFindings||{}),first=all.filter(([id])=>round.items.find(i=>i.id===id)?.scored!==false).map(([,v])=>v),unclassified=first.filter(v=>v.state==='Needs Fix'&&v.cause==='Unclear').length;
   const considered=first.filter(v=>v.state==='Checked'||(v.state==='Needs Fix'&&v.cause==='Rep Submission'));
   const score=considered.length?Math.round(100*considered.filter(v=>v.state==='Checked').length/considered.length):null;
-  return {score:unclassified?null:score,covered:first.length,total:round.items.length,unclassified};
+  return {score:unclassified?null:score,covered:all.length,total:round.items.length,unclassified};
 }
 export function reviewBlockers(r,group){
   if(!r.reviewRequired&&!r.documentReview)return [];

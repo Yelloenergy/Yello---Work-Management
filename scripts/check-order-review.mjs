@@ -7,10 +7,13 @@ assert.ok(validSourceDate('2026-11-12',Date.parse('2026-11-11T23:00:00Z')));
 assert.equal(validSourceDate('2026-11-13',Date.parse('2026-11-11T23:00:00Z')),false);
 assert.equal(validSourceDate('2026-02-30'),false);
 const ctx={role:'management',actor:'Review Admin'};let r=createClients()[17];r.reviewRequired=true;r.fields.NMI='43123456789';
-r.documents=['Signed Contract','Identification','Electricity Bill'].map((label,i)=>({id:'source-'+i,label,name:label+'.txt',bytes:100,type:'text/plain',at:'2026-10-23T00:00:00Z'}));
+r.documents=['Signed Contract','Identification','Electricity Bill','Grid + Meter File'].map((label,i)=>({id:'source-'+i,label,name:label+'.txt',bytes:100,type:'text/plain',at:'2026-10-23T00:00:00Z'}));
+r.gridReview={fields:{'Grid Status':'Grid Approved','Grid Provider':'Ausgrid',NMI:r.fields.NMI,'Approval Number':'SAMPLE-APPROVAL','Approval Date':'2026-10-23T00:00:00Z'},files:[]};
 const original=structuredClone(r.contracts[0]),act=(action,fields={})=>r=updateClient(r,{revision:r.revision,action,...fields},ctx);
 assert.match(blockers(r,'order')[0],/review/);
 act('review-contract-date',{documentId:'source-0',date:'2026-10-22'});act('review-start');const captured=structuredClone(activeReview(r).baseline);
+act('review-answer',{itemId:'grid-Approval Number',state:'Needs Fix',cause:'Rep Submission',note:'Operational approval source needs checking.'});
+assert.equal(activeReview(r).answers['grid-Approval Number'].cause,'Operational Work');
 assert.throws(()=>act('review-answer',{itemId:activeReview(r).items[0].id,state:'Checked',location:'Page 1'}),/appropriate source/);
 const fault='field-Roof Type';
 for(const item of activeReview(r).items){const document=r.documents.find(d=>item.sources.includes(d.label));act('review-answer',{itemId:item.id,state:item.id===fault?'Needs Fix':'Checked',cause:'Unclear',note:item.id===fault?'Roof Type differs from the source.':'',documentId:document.id,location:'Page 1'});}

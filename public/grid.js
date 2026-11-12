@@ -137,6 +137,7 @@ function detail(panel,record,section,notice=''){
 function database(){return new Promise((resolve,reject)=>{const request=indexedDB.open('yello-grid-review-files',1);request.onupgradeneeded=()=>request.result.createObjectStore('files');request.onsuccess=()=>resolve(request.result);request.onerror=()=>reject(Error('Browser file storage is unavailable.'));});}
 async function putFile(id,file){const db=await database();try{await new Promise((resolve,reject)=>{const transaction=db.transaction('files','readwrite');transaction.objectStore('files').put(file,id);transaction.oncomplete=resolve;transaction.onerror=()=>reject(Error('Could not save the attachment.'));});}finally{db.close();}}
 async function getFile(id){const db=await database();try{return await new Promise((resolve,reject)=>{const request=db.transaction('files').objectStore('files').get(id);request.onsuccess=()=>resolve(request.result);request.onerror=()=>reject(Error('Could not read the attachment.'));});}finally{db.close();}}
+export {getFile as readGridAttachmentBlob};
 export function mountGridActivity(panel){
   startPanel(panel);
   document.querySelector('#page-description').textContent='Central activity history for Grid and Meter work in this review workspace.';

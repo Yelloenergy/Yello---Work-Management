@@ -28,11 +28,15 @@ try{
   const completedAt=new Date(Date.now()-3600000).toISOString();
   await changeJob('crossover-save',{key:'order',evidence:{owner:'API Test Admin'}});
   const grid=structuredClone(job.gridReview);grid.fields['Grid Status']='Grid Approved';
+  grid.files.push({id:'api-grid-source',name:'Grid proof.txt',group:'grid',sample:false});
   await changeJob('save-grid-review',{grid,expectedGridUpdate:job.gridReview.fields['Last Update']});
+  const imported=await request('/api/clients/preview-18/documents',{revision:job.revision,label:'Grid + Meter File',gridFileId:'api-grid-source',name:'Grid proof.txt',content:Buffer.from('Fictional Grid approval source for this API test.').toString('base64')});assert.equal(imported.status,200);job=imported.value.record;assert.equal(job.documents.at(-1).gridSourceFileId,'api-grid-source');
+  const beforeImport=job.documents.length;
+  const invalidImport=await request('/api/clients/preview-18/documents',{revision:job.revision,label:'Grid + Meter File',gridFileId:'not-a-source',name:'Bad source.txt',content:Buffer.from('Not a Grid source.').toString('base64')});assert.equal(invalidImport.status,400);assert.equal((await request('/api/clients/preview-18')).value.record.documents.length,beforeImport);
   await changeJob('crossover-save',{key:'stc',evidence:{owner:'STC Admin',creator:'STC Creator',platform:'Bridgeselect',reference:'SAMPLE-STC',completedAt}});
   await changeJob('crossover-save',{key:'inventory',evidence:{owner:'Warehouse Admin',reference:'SAMPLE-PO',status:'Prepared',completedAt,lines:productLines(job).map(p=>({quantity:p.quantity,packed:p.quantity,matched:true}))}});
   await changeJob('crossover-save',{key:'extras',evidence:{items:job.contracts.at(-1).extras.map(()=>({organised:true,owner:'Extras Admin',reference:'SAMPLE-EXTRA',completedAt}))}});
-  for(const label of ['Identification','Electricity Bill']){
+  for(const label of ['Identification','Electricity Bill','Grid + Meter File']){
     const result=await request('/api/clients/preview-18/documents',{revision:job.revision,label,name:'Sample review evidence.txt',content:Buffer.from('Fictional source for API review testing.').toString('base64')});assert.equal(result.status,200);job=result.value.record;
   }
   await changeJob('save-profile',{page:'Grid Details',fields:{NMI:'43123456789'}});

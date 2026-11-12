@@ -19,7 +19,7 @@ export function stampFor(r,key){
 export function blockers(r,key){
   if(!currentOrder(r))return ['Signed contract is not recorded.'];
   if(r.changes.some(c=>c.status==='Pending'))return ['Resolve pending order changes first.'];
-  if(['order','products','pricing','extras','inventory'].includes(key)){const errors=reviewBlockers(r,key);if(errors.length)return errors;}
+  if(['order','grid','products','pricing','extras','inventory'].includes(key)){const errors=reviewBlockers(r,key);if(errors.length)return errors;}
   const c=r.crossover||{},e=c[key]||{};
   if(key==='order'||key==='products')return [];
   if(key==='pricing'){const p=currentOrder(r).price;return p&&['Total Price','STC Value','Discount Applied','Deposit','OFP Balance','Extra Balance'].every(k=>Number.isFinite(p[k])&&p[k]>=0)?[]:['Signed pricing is incomplete or invalid.'];}

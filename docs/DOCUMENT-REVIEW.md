@@ -4,6 +4,10 @@ Built from the owner's 11–12 November 2026 instructions. Every crossover clien
 
 ## Layout and evidence
 
+The 12 November refinement makes the desktop source area approximately 75% and checklist 25%, with a taller preview and responsive stacking. Every check has a visible section heading. The attachment list shows all actual order documents and source Grid/Meter files with Open File buttons; examples are explicitly marked. The manager can open a PDF, TXT/image source or fictional Grid approval example without leaving the review page.
+
+Grid Approval now has its own source-based checks for Grid Status, Grid Provider, NMI, Approval Number and Approval Date, using an attached `Grid + Meter File`. This label was already observed in the Grid source workbook. Genuine browser-local Grid files are copied into the shared review with `gridSourceFileId` provenance and deduplicated in the attachment list. Supported review formats/8 MB limit still apply; missing browser bytes require reattaching the original. Example files cannot be imported as genuine approval evidence. Grid checks and Grid-file correctness are operational, excluded from rep scoring, but required for readiness. Schema-versioned signatures ensure older incomplete review rounds cannot silently bypass the new Grid section.
+
 The left side opens an attached source document. TXT files use a sandboxed frame, images use a read-only image preview, and PDFs render to page images with Previous/Next controls. Open File remains available. The right side contains the checklist, recorded values, checkboxes, source selectors, page/section references, findings and issue attribution. On mobile the layout becomes one column.
 
 Existing workflow labels and values are reused: Preferred Name, Legal Name, Location, Contact 1/2, Email 1/2, Suburb, Postcode, Site Type, System Type, Phase Type, Roof Type, Height, Building Type, Strata Managed, NMI, Site Instructions / Rep Advice, product specifications/quantities, signed pricing, finance and signed Extras. Commercial client fields are conditional. No replacement Sales aliases or independent client/Sale identifiers are created.

@@ -3,7 +3,7 @@ import {updateCrossover,reconcileRelease} from './crossover-model.mjs';
 import {updateOrderReview} from './order-review-model.mjs';
 import { sampleOrders } from '../public/sample-orders.js';
 export const PAGES=['Client Details','Project Details','Grid Details','Documents','Products','Price','Outcome','Activity Log'];
-export const DOCUMENT_LABELS=['Electricity Bill','Meter Pic','Site Legend','PV Design','Battery Location','Build Plan','Interval Data','Signed Contract','Single Line Diagram (SLD)','Voltage Rise Calculation (VRC)','Identification','Strata Approval','Landlord Approval','Other'];
+export const DOCUMENT_LABELS=['Electricity Bill','Meter Pic','Site Legend','PV Design','Battery Location','Build Plan','Interval Data','Signed Contract','Grid + Meter File','Single Line Diagram (SLD)','Voltage Rise Calculation (VRC)','Identification','Strata Approval','Landlord Approval','Other'];
 export const FIELDS={
   'Client Details':['Site Type','Preferred Name','Legal Name','Legal Name Verified','Company Name','Business Name','Industry','Position','ABN','Contact 1','Contact 2','Email 1','Email 2','Location','Suburb','Postcode','Bill Amount'],
   'Project Details':['System Type','Connection Type','Building Type','Strata Managed','Phase Type','Roof Type','Height','Site Visit','Remote Site Visit','Site Visit Notes','Remote Visit Notes'],

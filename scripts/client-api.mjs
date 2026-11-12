@@ -96,8 +96,11 @@ export async function handleClients(request,response,url){
         const bytes=Buffer.from(body.content,'base64');if(!bytes.length||bytes.length>8*1024*1024)throw Error('Choose a non-empty file up to 8 MB.');
         const types={'.pdf':'application/pdf','.png':'image/png','.jpg':'image/jpeg','.jpeg':'image/jpeg','.txt':'text/plain'};
         const name=String(body.name||'').slice(0,180),type=types[path.extname(name).toLowerCase()];if(!type)throw Error('Use PDF, PNG, JPG or TXT for this review.');
+        const gridSource=body.gridFileId?current.gridReview?.files.find(f=>f.id===body.gridFileId&&!f.sample):null;
+        if(body.gridFileId&&(!gridSource||(body.label==='Grid + Meter File'&&gridSource.group!=='grid')))throw Error('Choose a genuine Grid source attachment.');
         const fileId=randomUUID();await writeFile(path.join(directory,fileId),bytes);
         updated=structuredClone(current);updated.documents.push({id:fileId,label:body.label,name,type,bytes:bytes.length,at:new Date().toISOString()});
+        if(gridSource)updated.documents.at(-1).gridSourceFileId=gridSource.id;
         event(updated,context,'Document',`${body.label} attached: ${name}.`);
       }else updated=updateClient(current,body,context);
       reconcileRelease(updated,context,event);

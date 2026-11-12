@@ -10,7 +10,7 @@ export function updateOrderReview(r,b,ctx,event){
   r.documentReview||={rounds:[]};let round=activeReview(r);
   if(b.action==='review-start'){
     if(round?.signature===reviewSignature(r))return r;
-    round={id:randomUUID(),at,by:ctx.actor,version:current.version,rubricVersion:'equal-weight-v1',signature:reviewSignature(r),baseline:{fields:structuredClone(r.fields),contract:structuredClone(current),documents:structuredClone(r.documents)},rep:r.fields['Rep Name'],items:reviewItems(r),answers:{},firstFindings:{}};
+    round={id:randomUUID(),at,by:ctx.actor,version:current.version,rubricVersion:'equal-weight-v1',signature:reviewSignature(r),baseline:{fields:structuredClone(r.fields),contract:structuredClone(current),documents:structuredClone(r.documents),grid:structuredClone(r.gridReview||null)},rep:r.fields['Rep Name'],items:reviewItems(r),answers:{},firstFindings:{}};
     r.documentReview.rounds.push(round);event(r,ctx,'Document Review',`Review started for approved version ${current.version}. Baseline captured now; historical first-submission accuracy is not inferred.`);
   }else if(b.action==='review-contract-date'){
     const document=r.documents.find(d=>d.id===b.documentId&&d.label==='Signed Contract'&&d.bytes>0);
@@ -30,11 +30,11 @@ export function updateOrderReview(r,b,ctx,event){
     if(b.state==='Checked'&&document.label==='Signed Contract'&&(r.contractEvidence?.version!==current.version||r.contractEvidence.documentId!==document.id))throw Error('Record Signed Contract Date from the current signed source first, then use that same document for the checks.');
     if(b.state==='Checked'&&(item.value==null||item.value===''||(Array.isArray(item.value)&&!item.value.length)))throw Error('The recorded value is missing. Flag it for correction.');
     if(b.state==='Not Applicable'&&(!item.optional||!note))throw Error('Not Applicable is allowed only for optional items with a reason.');
-    if(b.state==='Needs Fix'&&(!note||!['Rep Submission','Later Change','Review Correction','Unclear'].includes(b.cause)))throw Error('Explain the issue and classify its cause.');
-    const answer={state:b.state,note,location,documentId:document?.id||'',cause:b.state==='Needs Fix'?b.cause:'',at,by:ctx.actor};
+    if(b.state==='Needs Fix'&&(!note||(item.scored!==false&&!['Rep Submission','Later Change','Review Correction','Unclear'].includes(b.cause))))throw Error('Explain the issue and classify its cause.');
+    const answer={state:b.state,note,location,documentId:document?.id||'',cause:b.state==='Needs Fix'?(item.scored===false?'Operational Work':b.cause):'',at,by:ctx.actor};
     round.answers[item.id]=answer;
     if(!round.firstFindings[item.id]||(b.state==='Needs Fix'&&round.firstFindings[item.id].state!=='Needs Fix'))round.firstFindings[item.id]=structuredClone(answer);
-    else if(round.firstFindings[item.id].state==='Needs Fix'&&!round.finalizedAt&&b.state==='Needs Fix')round.firstFindings[item.id].cause=b.cause;
+    else if(round.firstFindings[item.id].state==='Needs Fix'&&!round.finalizedAt&&b.state==='Needs Fix')round.firstFindings[item.id].cause=answer.cause;
     event(r,ctx,'Document Review',`${item.label}: ${b.state}${answer.cause?' · '+answer.cause:''}. ${note}`);
   }else if(b.action==='review-finalise'){
     if(!round)throw Error('Start a review first.');
